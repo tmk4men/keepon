@@ -100,7 +100,7 @@ export function MenuSwiper({
                   className="btn-start"
                   onClick={() => onStart('full', m.title)}
                 >
-                  これで開始
+                  開始
                 </button>
               )}
             </div>
