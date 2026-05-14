@@ -1,7 +1,7 @@
 {
   "name": "ツヅキン — 止まっても戻れる",
   "short_name": "ツヅキン",
-  "description": "トレーニングをやめないためのAI復帰支援アプリ",
+  "description": "止まっても戻れる、トレーニング復帰支援アプリ",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f1ea",

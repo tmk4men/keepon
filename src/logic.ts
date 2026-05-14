@@ -57,7 +57,7 @@ function lastActiveDate(state: AppState, today: string): string | null {
   return best
 }
 
-// 今日のプランを組み立てる（AIではなく通常ロジック）
+// 今日のプランを組み立てる（端末内の通常ロジック）
 export function buildDailyPlan(state: AppState, today: string): DailyPlan {
   const profile = state.profile!
   const dayIndex = Math.max(0, daysBetween(state.createdAt, today))
