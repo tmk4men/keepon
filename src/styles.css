@@ -787,9 +787,22 @@ input {
   border-radius: 7px;
   background: transparent;
   border: 1px solid #e3d8bc;
+  padding: 0;
+  font: inherit;
+  color: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+button.cal-cell {
+  transition: transform 0.07s ease;
+}
+button.cal-cell:active {
+  transform: scale(0.92);
+}
+.cal-cell.selected {
+  box-shadow: 0 0 0 2px #faf5e6, 0 0 0 3px var(--accent-deep);
+  border-color: var(--accent-deep);
 }
 .cal-cell.blank {
   background: transparent;
@@ -946,6 +959,9 @@ input {
 }
 
 /* month log（その月のきろく一覧） */
+.month-log-card {
+  margin-top: 13px;
+}
 .month-log {
   list-style: none;
   padding: 0;
@@ -959,6 +975,13 @@ input {
 }
 .month-log li:last-child {
   border-bottom: none;
+}
+.month-log li.highlighted {
+  background: var(--accent-soft);
+  margin: 0 -10px;
+  padding: 13px 10px;
+  border-radius: 9px;
+  border-bottom-color: transparent;
 }
 .month-log-date {
   font-size: 11.5px;

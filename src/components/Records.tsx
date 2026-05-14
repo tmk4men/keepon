@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { parseDate, recordOn, toDateStr, type AppState } from '../state'
 import { IconArrowBack, StampDone, StampMin } from './icons'
 
@@ -31,6 +31,14 @@ export default function Records({
     y: todayDate.getFullYear(),
     m: todayDate.getMonth(),
   })
+  const [selected, setSelected] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!selected) return
+    document
+      .getElementById(`log-${selected}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [selected])
 
   const monthStart = new Date(view.y, view.m, 1)
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
@@ -118,25 +126,44 @@ export default function Records({
           {Array.from({ length: leadBlanks }).map((_, i) => (
             <span key={`b${i}`} className="cal-cell blank" />
           ))}
-          {cells.map((c) => (
-            <div
-              key={c.date}
-              className={`cal-cell ${c.status}${
-                c.date === today ? ' is-today' : ''
-              }`}
-            >
-              <span className="cal-day">{c.day}</span>
-              {(c.status === 'full' || c.status === 'both') && (
-                <StampDone size={34} className="stamp stamp-full" />
-              )}
-              {c.status === 'minimum' && (
-                <StampMin size={34} className="stamp stamp-min" />
-              )}
-              {c.status === 'both' && (
-                <StampMin size={18} className="stamp-extra stamp-min" />
-              )}
-            </div>
-          ))}
+          {cells.map((c) => {
+            const hasRec =
+              c.status === 'full' ||
+              c.status === 'minimum' ||
+              c.status === 'both'
+            const cls = `cal-cell ${c.status}${
+              c.date === today ? ' is-today' : ''
+            }${c.date === selected ? ' selected' : ''}`
+            const inner = (
+              <>
+                <span className="cal-day">{c.day}</span>
+                {(c.status === 'full' || c.status === 'both') && (
+                  <StampDone size={34} className="stamp stamp-full" />
+                )}
+                {c.status === 'minimum' && (
+                  <StampMin size={34} className="stamp stamp-min" />
+                )}
+                {c.status === 'both' && (
+                  <StampMin size={18} className="stamp-extra stamp-min" />
+                )}
+              </>
+            )
+            return hasRec ? (
+              <button
+                key={c.date}
+                className={cls}
+                onClick={() =>
+                  setSelected((cur) => (cur === c.date ? null : c.date))
+                }
+              >
+                {inner}
+              </button>
+            ) : (
+              <div key={c.date} className={cls}>
+                {inner}
+              </div>
+            )
+          })}
         </div>
 
         <div className="legend">
@@ -161,16 +188,19 @@ export default function Records({
         <Stat n={full + minimum} label="スタンプ合計" tone="total" />
       </div>
 
-      <h3 className="section-title">{view.m + 1}月のきろく</h3>
       {monthLog.length === 0 ? (
-        <div className="card">
+        <div className="card month-log-card">
           <p className="center-msg">この月のきろくは、まだありません。</p>
         </div>
       ) : (
-        <div className="card">
+        <div className="card month-log-card">
           <ul className="month-log">
             {monthLog.map((r) => (
-              <li key={r.date}>
+              <li
+                key={r.date}
+                id={`log-${r.date}`}
+                className={r.date === selected ? 'highlighted' : ''}
+              >
                 <span className="month-log-date">{formatShort(r.date)}</span>
                 <div className="month-log-items">
                   {r.full && (
