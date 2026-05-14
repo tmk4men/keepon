@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { parseDate, recordOn, toDateStr, type AppState } from '../state'
 import { IconArrowBack, StampDone, StampMin } from './icons'
 
@@ -13,9 +13,9 @@ type CellStatus =
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
-function formatFull(s: string): string {
+function formatShort(s: string): string {
   const d = parseDate(s)
-  return `${d.getMonth() + 1}月${d.getDate()}日（${WEEKDAYS[d.getDay()]}）`
+  return `${d.getMonth() + 1}/${d.getDate()}（${WEEKDAYS[d.getDay()]}）`
 }
 
 export default function Records({
@@ -31,7 +31,6 @@ export default function Records({
     y: todayDate.getFullYear(),
     m: todayDate.getMonth(),
   })
-  const [selected, setSelected] = useState<string | null>(today)
 
   const monthStart = new Date(view.y, view.m, 1)
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
@@ -51,7 +50,7 @@ export default function Records({
     })
   }
 
-  // 月内集計（スタンプは種別ごとに数える）
+  // 月内集計＋セル
   let full = 0
   let minimum = 0
   const cells: { day: number; date: string; status: CellStatus }[] = []
@@ -70,20 +69,17 @@ export default function Records({
     cells.push({ day: d, date, status })
   }
 
-  const selectable: CellStatus[] = ['full', 'minimum', 'both', 'missed', 'pending']
-
-  // 選択中の日付が、表示中の月のどの行・列にあるか
-  let selRow: number | null = null
-  let selCol = 0
-  if (selected) {
-    const sd = parseDate(selected)
-    if (sd.getFullYear() === view.y && sd.getMonth() === view.m) {
-      const pos = leadBlanks + (sd.getDate() - 1)
-      selRow = Math.floor(pos / 7)
-      selCol = pos % 7
-    }
-  }
-  const selectedRec = selected ? recordOn(state.records, selected) : undefined
+  // この月の記録一覧（新しい日付が上）
+  const monthLog = state.records
+    .filter((r) => {
+      const d = parseDate(r.date)
+      return (
+        d.getFullYear() === view.y &&
+        d.getMonth() === view.m &&
+        (r.full || r.minimum)
+      )
+    })
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
 
   return (
     <div className="screen">
@@ -122,90 +118,25 @@ export default function Records({
           {Array.from({ length: leadBlanks }).map((_, i) => (
             <span key={`b${i}`} className="cal-cell blank" />
           ))}
-          {cells.map((c, i) => {
-            const g = leadBlanks + i
-            const tappable = selectable.includes(c.status)
-            const cls = `cal-cell ${c.status}${
-              c.date === today ? ' is-today' : ''
-            }${c.date === selected ? ' selected' : ''}`
-            const inner = (
-              <>
-                <span className="cal-day">{c.day}</span>
-                {(c.status === 'full' || c.status === 'both') && (
-                  <StampDone size={34} className="stamp stamp-full" />
-                )}
-                {c.status === 'minimum' && (
-                  <StampMin size={34} className="stamp stamp-min" />
-                )}
-                {c.status === 'both' && (
-                  <StampMin size={18} className="stamp-extra stamp-min" />
-                )}
-              </>
-            )
-            const rowEnd = g % 7 === 6 || i === cells.length - 1
-            const popHere =
-              selRow !== null && Math.floor(g / 7) === selRow && rowEnd
-
-            return (
-              <Fragment key={c.date}>
-                {tappable ? (
-                  <button
-                    className={cls}
-                    onClick={() =>
-                      setSelected((cur) => (cur === c.date ? null : c.date))
-                    }
-                  >
-                    {inner}
-                  </button>
-                ) : (
-                  <div className={cls}>{inner}</div>
-                )}
-                {popHere && selected && (
-                  <div
-                    key={selected}
-                    className="day-pop"
-                    style={{ gridColumn: '1 / -1' }}
-                  >
-                    <span
-                      className="day-pop-arrow"
-                      style={{ left: `${((selCol + 0.5) * 100) / 7}%` }}
-                    />
-                    <div className="day-pop-date">{formatFull(selected)}</div>
-                    {selectedRec && (selectedRec.full || selectedRec.minimum) ? (
-                      <div className="day-pop-items">
-                        {selectedRec.full && (
-                          <div className="day-item">
-                            <StampDone
-                              size={26}
-                              className="day-item-stamp stamp-full"
-                            />
-                            <span className="day-item-title">
-                              {selectedRec.fullMenu ?? 'メニューを実施'}
-                            </span>
-                          </div>
-                        )}
-                        {selectedRec.minimum && (
-                          <div className="day-item">
-                            <StampMin
-                              size={26}
-                              className="day-item-stamp stamp-min"
-                            />
-                            <span className="day-item-title">
-                              {selectedRec.minimumMenu ?? '最低ラインを実施'}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="day-pop-empty">
-                        この日の記録はありません。
-                      </p>
-                    )}
-                  </div>
-                )}
-              </Fragment>
-            )
-          })}
+          {cells.map((c) => (
+            <div
+              key={c.date}
+              className={`cal-cell ${c.status}${
+                c.date === today ? ' is-today' : ''
+              }`}
+            >
+              <span className="cal-day">{c.day}</span>
+              {(c.status === 'full' || c.status === 'both') && (
+                <StampDone size={34} className="stamp stamp-full" />
+              )}
+              {c.status === 'minimum' && (
+                <StampMin size={34} className="stamp stamp-min" />
+              )}
+              {c.status === 'both' && (
+                <StampMin size={18} className="stamp-extra stamp-min" />
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="legend">
@@ -229,6 +160,37 @@ export default function Records({
         <Stat n={minimum} label="最低ライン" tone="min" />
         <Stat n={full + minimum} label="スタンプ合計" tone="total" />
       </div>
+
+      <h3 className="section-title">{view.m + 1}月のきろく</h3>
+      {monthLog.length === 0 ? (
+        <div className="card">
+          <p className="center-msg">この月のきろくは、まだありません。</p>
+        </div>
+      ) : (
+        <div className="card">
+          <ul className="month-log">
+            {monthLog.map((r) => (
+              <li key={r.date}>
+                <span className="month-log-date">{formatShort(r.date)}</span>
+                <div className="month-log-items">
+                  {r.full && (
+                    <div className="month-log-item">
+                      <StampDone size={20} className="stamp-full" />
+                      <span>{r.fullMenu ?? 'メニューを実施'}</span>
+                    </div>
+                  )}
+                  {r.minimum && (
+                    <div className="month-log-item">
+                      <StampMin size={20} className="stamp-min" />
+                      <span>{r.minimumMenu ?? '最低ラインを実施'}</span>
+                    </div>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   )
 }

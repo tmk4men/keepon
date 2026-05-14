@@ -789,25 +789,9 @@ input {
   border-radius: 7px;
   background: transparent;
   border: 1px solid #e3d8bc;
-  padding: 0;
-  font: inherit;
-  color: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-button.cal-cell {
-  transition: transform 0.07s ease;
-}
-button.cal-cell:active {
-  transform: scale(0.93);
-}
-.cal-cell.selected {
-  box-shadow: 0 0 0 2px #faf5e6, 0 0 0 3px var(--accent-deep);
-  border-color: var(--accent-deep);
-}
-.cal-cell.is-today.selected {
-  box-shadow: 0 0 0 2px #faf5e6, 0 0 0 3px var(--accent-deep);
 }
 .cal-cell.blank {
   background: transparent;
@@ -963,66 +947,46 @@ button.cal-cell:active {
   color: rgba(255, 255, 255, 0.78);
 }
 
-/* day pop（タップした日付の下にポップアップ） */
-.day-pop {
-  position: relative;
-  background: #fffdf3;
-  border: 1px solid #d8caa3;
-  border-radius: 10px;
-  padding: 13px 14px;
-  margin-top: 2px;
-  box-shadow: 0 5px 14px rgba(44, 42, 38, 0.1);
-  animation: day-pop-in 0.26s cubic-bezier(0.34, 1.45, 0.6, 1) both;
+/* month log（その月のきろく一覧） */
+.month-log {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
-.day-pop-arrow {
-  position: absolute;
-  top: -5px;
-  width: 10px;
-  height: 10px;
-  background: #fffdf3;
-  border-left: 1px solid #d8caa3;
-  border-top: 1px solid #d8caa3;
-  transform: translateX(-50%) rotate(45deg);
+.month-log li {
+  display: flex;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
 }
-@keyframes day-pop-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.month-log li:last-child {
+  border-bottom: none;
 }
-.day-pop-date {
-  font-size: 12.5px;
+.month-log-date {
+  font-size: 11.5px;
   font-weight: 800;
-  color: var(--accent-deep);
-  margin-bottom: 11px;
+  color: var(--sub);
+  width: 62px;
+  flex-shrink: 0;
+  padding-top: 2px;
 }
-.day-pop-items {
+.month-log-items {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  min-width: 0;
 }
-.day-item {
+.month-log-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-.day-item-stamp {
-  flex-shrink: 0;
-}
-.day-item-title {
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13.5px;
   font-weight: 800;
-  line-height: 1.45;
+  line-height: 1.4;
 }
-.day-pop-empty {
-  font-size: 12px;
-  color: var(--sub);
-  line-height: 1.6;
-  margin: 0;
+.month-log-item svg {
+  flex-shrink: 0;
 }
 
 .center-msg {
