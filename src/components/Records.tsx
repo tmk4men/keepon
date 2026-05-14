@@ -149,7 +149,12 @@ export default function Records({
             return (
               <Fragment key={c.date}>
                 {tappable ? (
-                  <button className={cls} onClick={() => setSelected(c.date)}>
+                  <button
+                    className={cls}
+                    onClick={() =>
+                      setSelected((cur) => (cur === c.date ? null : c.date))
+                    }
+                  >
                     {inner}
                   </button>
                 ) : (
