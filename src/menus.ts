@@ -149,6 +149,55 @@ export const MINIMUM_MENUS: Menu[] = [
     minutes: 1,
     level: 'minimum',
   },
+  {
+    id: 'm-plank',
+    title: 'プランク 20秒',
+    detail: '肘とつま先で体を一直線に。きつければひざをついてOK。',
+    minutes: 1,
+    level: 'minimum',
+  },
+  {
+    id: 'm-knee',
+    title: 'もも上げ 30秒',
+    detail: 'その場で太ももを高く。テレビを見ながらでもOK。',
+    minutes: 1,
+    level: 'minimum',
+  },
+  {
+    id: 'm-shoulder',
+    title: '肩回し 20回',
+    detail: '前回し10回・後ろ回し10回。デスクワークのリセットにも。',
+    minutes: 1,
+    level: 'minimum',
+  },
+  {
+    id: 'm-stairs',
+    title: '階段を1往復',
+    detail: '家やビルの階段を上って下りるだけ。エレベーターを一回我慢。',
+    minutes: 2,
+    level: 'minimum',
+  },
+  {
+    id: 'm-jump',
+    title: 'その場ジャンプ 15回',
+    detail: '軽く飛ぶだけ。心拍が少し上がれば十分。',
+    minutes: 1,
+    level: 'minimum',
+  },
+  {
+    id: 'm-sidebend',
+    title: '体側のばし 左右30秒',
+    detail: '片手を上げて体を横へ。脇腹がのびる気持ちよさを味わう。',
+    minutes: 1,
+    level: 'minimum',
+  },
+  {
+    id: 'm-breath',
+    title: '深呼吸ストレッチ 2分',
+    detail: '大きく吸って背伸び、ゆっくり吐いて脱力。これも立派な一歩。',
+    minutes: 2,
+    level: 'minimum',
+  },
 ]
 
 // 余力に応じて通常プールから候補を絞る

@@ -12,13 +12,15 @@ import Onboarding from './components/Onboarding'
 import Home from './components/Home'
 import Records from './components/Records'
 import Continuity from './components/Continuity'
+import Settings from './components/Settings'
 import { TabBar, type TabKey } from './components/TabBar'
 import { TimerBar } from './components/TimerBar'
-import { IconLeaf } from './components/icons'
+import { IconLeaf, IconMenu } from './components/icons'
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [tab, setTab] = useState<TabKey>('today')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const today = useMemo(() => todayStr(), [])
 
   useEffect(() => {
@@ -65,6 +67,13 @@ export default function App() {
           <span className="brand-name">KeepOn</span>
         </div>
         <div className="tagline">止まっても、戻れる。</div>
+        <button
+          className="header-menu"
+          onClick={() => setSettingsOpen(true)}
+          aria-label="設定"
+        >
+          <IconMenu size={20} />
+        </button>
       </header>
 
       {tab === 'today' && (
@@ -81,6 +90,14 @@ export default function App() {
         />
       )}
       <TabBar tab={tab} onChange={setTab} />
+
+      {settingsOpen && (
+        <Settings
+          profile={state.profile}
+          onSave={(profile) => setState((s) => ({ ...s, profile }))}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   )
 }

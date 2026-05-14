@@ -78,6 +78,22 @@ export function IconArrowBack({ size = 18, className }: P) {
   )
 }
 
+export function IconMenu({ size = 22, className }: P) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  )
+}
+
+export function IconClose({ size = 22, className }: P) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  )
+}
+
 // ハンコ風スタンプ：メニュー完了（チェックの判子）
 export function StampDone({ size = 30, className }: P) {
   return (
