@@ -64,6 +64,7 @@ export default function App() {
   const backHome = () => {
     setFinished(null)
     setTab('today')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
