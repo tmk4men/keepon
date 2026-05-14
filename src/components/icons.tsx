@@ -77,3 +77,59 @@ export function IconArrowBack({ size = 18, className }: P) {
     </svg>
   )
 }
+
+// ハンコ風スタンプ：メニュー完了（チェックの判子）
+export function StampDone({ size = 30, className }: P) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+    >
+      <g transform="rotate(-11 20 20)">
+        <circle cx="20" cy="20" r="15.4" strokeWidth="2" />
+        <circle
+          cx="20"
+          cy="20"
+          r="11.8"
+          strokeWidth="1"
+          strokeDasharray="1.4 2.3"
+        />
+        <path
+          d="M13.6 20.6l4.4 4.4 8.4-9"
+          strokeWidth="2.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </g>
+    </svg>
+  )
+}
+
+// ハンコ風スタンプ：最低ライン達成（点の判子）
+export function StampMin({ size = 30, className }: P) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+    >
+      <g transform="rotate(-11 20 20)">
+        <circle
+          cx="20"
+          cy="20"
+          r="13.4"
+          strokeWidth="1.7"
+          strokeDasharray="2.6 2.6"
+        />
+        <circle cx="20" cy="20" r="3.6" fill="currentColor" stroke="none" />
+      </g>
+    </svg>
+  )
+}

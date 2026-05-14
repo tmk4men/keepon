@@ -35,7 +35,7 @@ export function TimerBar({
       <div className="timer-main">
         <div className="timer-status">
           <span className="timer-pulse" />
-          {timer.kind === 'minimum' ? '最低ライン' : 'メニュー'}を実施中
+          実施中
         </div>
         <div className="timer-clock">
           {mm}
@@ -48,6 +48,31 @@ export function TimerBar({
       <button className="timer-finish" onClick={onFinish}>
         <IconCheck size={19} />
         終了して記録
+      </button>
+    </div>
+  )
+}
+
+export function FinishedBar({
+  kind,
+  onHome,
+}: {
+  kind: 'full' | 'minimum'
+  onHome: () => void
+}) {
+  return (
+    <div className="timer-bar timer-done">
+      <div className="timer-main timer-done-main">
+        <div className="timer-status">
+          <IconCheck size={14} />
+          記録しました
+        </div>
+        <div className="timer-done-label">
+          {kind === 'minimum' ? '最低ライン達成' : 'メニュー完了'}・おつかれさま
+        </div>
+      </div>
+      <button className="timer-finish" onClick={onHome}>
+        ホームに戻る
       </button>
     </div>
   )

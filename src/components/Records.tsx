@@ -7,12 +7,12 @@ import {
   type AppState,
   type DayStatus,
 } from '../state'
-import { IconArrowBack } from './icons'
+import { IconArrowBack, StampDone, StampMin } from './icons'
 
 type CellStatus = DayStatus | 'missed' | 'pending' | 'future' | 'before'
 
 const STATUS_LABEL: Record<DayStatus, string> = {
-  full: '通常メニュー達成',
+  full: 'メニュー完了',
   minimum: '最低ライン達成',
   rest: '計画的なお休み',
 }
@@ -54,7 +54,6 @@ export default function Records({
   // 月内集計
   let full = 0
   let minimum = 0
-  let rest = 0
   const cells: { day: number; date: string; status: CellStatus }[] = []
   for (let d = 1; d <= daysInMonth; d++) {
     const date = toDateStr(new Date(view.y, view.m, d))
@@ -66,7 +65,6 @@ export default function Records({
       status = rec.status
       if (rec.status === 'full') full++
       else if (rec.status === 'minimum') minimum++
-      else rest++
     } else if (date === today) status = 'pending'
     else status = 'missed'
     cells.push({ day: d, date, status })
@@ -80,10 +78,10 @@ export default function Records({
     <div className="screen">
       <h2 className="screen-title">きろく</h2>
       <p className="screen-sub">
-        連続日数は数えません。「動けた日」を、見返すために。
+        動けた日に、スタンプがたまっていきます。
       </p>
 
-      <div className="card">
+      <div className="card stamp-card-sheet">
         <div className="cal-head">
           <button
             className="cal-nav"
@@ -116,50 +114,52 @@ export default function Records({
             <span key={`b${i}`} className="cal-cell blank" />
           ))}
           {cells.map((c) => (
-            <span
+            <div
               key={c.date}
               className={`cal-cell ${c.status}${
                 c.date === today ? ' is-today' : ''
               }`}
             >
-              {c.day}
-            </span>
+              <span className="cal-day">{c.day}</span>
+              {c.status === 'full' && (
+                <StampDone size={34} className="stamp stamp-full" />
+              )}
+              {c.status === 'minimum' && (
+                <StampMin size={34} className="stamp stamp-min" />
+              )}
+            </div>
           ))}
         </div>
 
         <div className="legend">
           <span>
-            <i className="lg-full" />
-            通常
+            <StampDone size={22} className="lg-stamp stamp-full" />
+            メニュー完了
           </span>
           <span>
-            <i className="lg-min" />
+            <StampMin size={22} className="lg-stamp stamp-min" />
             最低ライン
           </span>
           <span>
-            <i className="lg-rest" />
-            お休み
-          </span>
-          <span>
-            <i className="lg-missed" />
-            未記録
+            <i className="lg-empty" />
+            まだ
           </span>
         </div>
       </div>
 
       <div className="month-stats">
-        <Stat n={full} label="通常" tone="full" />
+        <Stat n={full} label="メニュー" tone="full" />
         <Stat n={minimum} label="最低ライン" tone="min" />
-        <Stat n={rest} label="お休み" tone="rest" />
+        <Stat n={full + minimum} label="スタンプ合計" tone="total" />
       </div>
 
       <h3 className="section-title">さいきんの記録</h3>
       {recent.length === 0 ? (
         <div className="card">
           <p className="center-msg">
-            まだ記録はありません。
+            まだスタンプはありません。
             <br />
-            今日の「今日」タブから、最初の一歩を残しましょう。
+            「今日」タブから、最初の一歩を残しましょう。
           </p>
         </div>
       ) : (
@@ -186,7 +186,7 @@ function Stat({
 }: {
   n: number
   label: string
-  tone: 'full' | 'min' | 'rest'
+  tone: 'full' | 'min' | 'total'
 }) {
   return (
     <div className={`mstat mstat-${tone}`}>

@@ -727,81 +727,108 @@ input {
   gap: 5px;
 }
 .cal-cell {
+  position: relative;
   aspect-ratio: 1;
-  border-radius: 9px;
+  border-radius: 10px;
+  background: #f7f3e9;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
 }
 .cal-cell.blank {
   background: transparent;
 }
-.cal-cell.full {
-  background: var(--accent);
-  color: #fff;
+.cal-day {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1;
+  color: #c1baa9;
 }
+.stamp {
+  display: block;
+  animation: stamp-in 0.32s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+}
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.5) rotate(-11deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+.stamp-full {
+  color: var(--accent);
+}
+.stamp-min {
+  color: var(--min);
+}
+.cal-cell.full,
 .cal-cell.minimum {
-  background: var(--min);
-  color: #fff;
+  background: #fffdf8;
 }
-.cal-cell.rest {
-  background: var(--warn-soft);
-  color: var(--warn);
+.cal-cell.full .cal-day {
+  color: #aac6bc;
+}
+.cal-cell.minimum .cal-day {
+  color: #b0c1d6;
 }
 .cal-cell.missed {
   background: #efece3;
-  color: #c4bdaf;
+}
+.cal-cell.missed .cal-day {
+  color: #d0c9b8;
+}
+.cal-cell.rest .cal-day {
+  color: var(--warn);
 }
 .cal-cell.pending {
-  background: #fff;
-  color: var(--accent-deep);
-  border: 1.5px solid var(--accent);
+  background: #fffdf8;
+  border: 1.5px dashed var(--accent);
 }
-.cal-cell.future {
-  background: transparent;
-  color: #d4cebf;
+.cal-cell.pending .cal-day {
+  color: var(--accent);
 }
+.cal-cell.future,
 .cal-cell.before {
   background: transparent;
+}
+.cal-cell.future .cal-day,
+.cal-cell.before .cal-day {
   color: #ddd7c8;
 }
-.cal-cell.is-today {
-  box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--accent);
+.cal-cell.is-today:not(.pending) {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--accent);
 }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 8px 16px;
   font-size: 10.5px;
   color: var(--sub);
   margin-top: 15px;
+  font-weight: 700;
 }
 .legend span {
   display: flex;
   align-items: center;
   gap: 5px;
 }
-.legend i {
-  width: 11px;
-  height: 11px;
-  border-radius: 3.5px;
-  display: inline-block;
+.lg-stamp {
+  flex-shrink: 0;
 }
-.legend .lg-full {
-  background: var(--accent);
-}
-.legend .lg-min {
-  background: var(--min);
-}
-.legend .lg-rest {
-  background: var(--warn-soft);
-  border: 1px solid var(--warn);
-}
-.legend .lg-missed {
+.lg-empty {
+  width: 19px;
+  height: 19px;
+  border-radius: 5px;
   background: #efece3;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 /* month stats */
@@ -835,8 +862,14 @@ input {
 .mstat-min .mstat-n {
   color: var(--min);
 }
-.mstat-rest .mstat-n {
-  color: var(--warn);
+.mstat-total {
+  background: var(--accent-deep);
+}
+.mstat-total .mstat-n {
+  color: #fff;
+}
+.mstat-total .mstat-l {
+  color: rgba(255, 255, 255, 0.78);
 }
 
 /* record list */
@@ -996,6 +1029,27 @@ input {
 }
 .timer-minimum .timer-finish {
   color: var(--min-deep);
+}
+
+.timer-done {
+  background: var(--accent);
+  box-shadow: 0 10px 30px rgba(63, 125, 110, 0.4);
+}
+.timer-done-main {
+  text-align: left;
+}
+.timer-done .timer-status {
+  justify-content: flex-start;
+  opacity: 1;
+  font-size: 11px;
+}
+.timer-done-label {
+  font-size: 11px;
+  opacity: 0.85;
+  margin-top: 3px;
+}
+.timer-done .timer-finish {
+  color: var(--accent-deep);
 }
 
 /* ---------- bottom nav ---------- */

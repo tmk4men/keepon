@@ -13,12 +13,13 @@ import Home from './components/Home'
 import Records from './components/Records'
 import Continuity from './components/Continuity'
 import { TabBar, type TabKey } from './components/TabBar'
-import { TimerBar } from './components/TimerBar'
+import { TimerBar, FinishedBar } from './components/TimerBar'
 import { IconLeaf } from './components/icons'
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [tab, setTab] = useState<TabKey>('today')
+  const [finished, setFinished] = useState<'full' | 'minimum' | null>(null)
   const today = useMemo(() => todayStr(), [])
 
   useEffect(() => {
@@ -38,12 +39,16 @@ export default function App() {
   const unlog = () =>
     setState((s) => ({ ...s, records: clearRecord(s.records, today) }))
 
-  const startTimer = (kind: 'full' | 'minimum', menuTitle: string) =>
+  const startTimer = (kind: 'full' | 'minimum', menuTitle: string) => {
+    setFinished(null)
     setState((s) => ({
       ...s,
       timer: { kind, menuTitle, startedAt: Date.now() },
     }))
-  const finishTimer = () =>
+  }
+  const finishTimer = () => {
+    if (!state.timer) return
+    const kind = state.timer.kind
     setState((s) =>
       s.timer
         ? {
@@ -53,10 +58,16 @@ export default function App() {
           }
         : s,
     )
+    setFinished(kind)
+  }
   const cancelTimer = () => setState((s) => ({ ...s, timer: null }))
+  const backHome = () => {
+    setFinished(null)
+    setTab('today')
+  }
 
   return (
-    <div className={`app${state.timer ? ' has-timer' : ''}`}>
+    <div className={`app${state.timer || finished ? ' has-timer' : ''}`}>
       <header className="app-header">
         <div className="brand">
           <span className="brand-mark">
@@ -78,13 +89,15 @@ export default function App() {
       {tab === 'records' && <Records state={state} today={today} />}
       {tab === 'continuity' && <Continuity state={state} today={today} />}
 
-      {state.timer && (
+      {state.timer ? (
         <TimerBar
           timer={state.timer}
           onFinish={finishTimer}
           onCancel={cancelTimer}
         />
-      )}
+      ) : finished ? (
+        <FinishedBar kind={finished} onHome={backHome} />
+      ) : null}
       <TabBar tab={tab} onChange={setTab} />
     </div>
   )
