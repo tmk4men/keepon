@@ -715,7 +715,28 @@ input {
   margin-left: 2px;
 }
 
-/* ---------- records: calendar ---------- */
+/* ---------- records: calendar (紙のスタンプカード) ---------- */
+.stamp-card-sheet {
+  position: relative;
+  background-color: #faf5e6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)' opacity='0.05'/%3E%3C/svg%3E");
+  border: 1px solid #e7dcc1;
+  box-shadow: 0 1px 2px rgba(44, 42, 38, 0.06),
+    0 9px 22px rgba(44, 42, 38, 0.07);
+}
+/* 印刷された内枠のような飾り罫 */
+.stamp-card-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid #e2d6b8;
+  border-radius: 13px;
+  pointer-events: none;
+}
+.stamp-card-sheet > * {
+  position: relative;
+}
+
 .cal-head {
   display: flex;
   align-items: center;
@@ -725,12 +746,14 @@ input {
 .cal-month {
   font-size: 15px;
   font-weight: 800;
+  letter-spacing: 0.03em;
 }
 .cal-nav {
   width: 32px;
   height: 32px;
-  border-radius: 10px;
-  background: var(--bg);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid #e2d6b8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -740,8 +763,8 @@ input {
   transform: rotate(180deg);
 }
 .cal-nav:disabled {
-  color: #cfc9bb;
-  background: #f1eee5;
+  color: #cdc4ab;
+  background: rgba(255, 255, 255, 0.25);
 }
 .cal-weekdays {
   display: grid;
@@ -763,14 +786,16 @@ input {
 .cal-cell {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 10px;
-  background: #f7f3e9;
+  border-radius: 7px;
+  background: transparent;
+  border: 1px solid #e3d8bc;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .cal-cell.blank {
   background: transparent;
+  border-color: transparent;
 }
 .cal-day {
   position: absolute;
@@ -779,7 +804,7 @@ input {
   font-size: 9px;
   font-weight: 800;
   line-height: 1;
-  color: #c1baa9;
+  color: #b3a988;
 }
 .stamp {
   display: block;
@@ -818,22 +843,24 @@ input {
 .cal-cell.full,
 .cal-cell.minimum,
 .cal-cell.both {
-  background: #fffdf8;
+  background: #fffdf3;
+  border-color: #d8caa3;
 }
 .cal-cell.full .cal-day {
-  color: #aac6bc;
+  color: #a7c2b7;
 }
 .cal-cell.minimum .cal-day {
-  color: #b0c1d6;
+  color: #aebed3;
 }
 .cal-cell.missed {
-  background: #efece3;
+  background: rgba(120, 106, 74, 0.07);
+  border-color: #e3d8bc;
 }
 .cal-cell.missed .cal-day {
-  color: #d0c9b8;
+  color: #c4ba9e;
 }
 .cal-cell.pending {
-  background: #fffdf8;
+  background: #fffdf3;
   border: 1.5px dashed var(--accent);
 }
 .cal-cell.pending .cal-day {
@@ -842,13 +869,14 @@ input {
 .cal-cell.future,
 .cal-cell.before {
   background: transparent;
+  border-color: #ebe2cd;
 }
 .cal-cell.future .cal-day,
 .cal-cell.before .cal-day {
-  color: #ddd7c8;
+  color: #d8cfb7;
 }
 .cal-cell.is-today:not(.pending) {
-  box-shadow: 0 0 0 2px var(--card), 0 0 0 3px var(--accent);
+  box-shadow: 0 0 0 2px #faf5e6, 0 0 0 3px var(--accent);
 }
 
 .legend {
@@ -872,7 +900,8 @@ input {
   width: 19px;
   height: 19px;
   border-radius: 5px;
-  background: #efece3;
+  background: transparent;
+  border: 1px solid #d8caa3;
   display: inline-block;
   flex-shrink: 0;
 }
