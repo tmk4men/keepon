@@ -4,6 +4,7 @@ dist-ssr
 *.local
 .DS_Store
 *.log
+*.tsbuildinfo
 
 # 企画書（公開リポジトリに含めない）
 *.docx
