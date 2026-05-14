@@ -15,7 +15,7 @@ import Continuity from './components/Continuity'
 import Settings from './components/Settings'
 import { TabBar, type TabKey } from './components/TabBar'
 import { TimerBar } from './components/TimerBar'
-import { IconLeaf, IconMenu } from './components/icons'
+import { IconMenu } from './components/icons'
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
@@ -65,9 +65,7 @@ export default function App() {
     <div className={`app${state.timer ? ' has-timer' : ''}`}>
       <header className="app-header">
         <div className="brand">
-          <span className="brand-mark">
-            <IconLeaf size={17} />
-          </span>
+          <img className="brand-mark" src="./icon.png" alt="" />
           <span className="brand-name">ツヅキン</span>
         </div>
         <div className="tagline">止まっても、戻れる。</div>

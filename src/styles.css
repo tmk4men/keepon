@@ -90,14 +90,12 @@ input {
   gap: 7px;
 }
 .brand-mark {
-  width: 26px;
-  height: 26px;
+  width: 27px;
+  height: 27px;
   border-radius: 8px;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  object-fit: cover;
+  display: block;
+  box-shadow: var(--shadow-soft);
 }
 .brand-name {
   font-size: 18px;
