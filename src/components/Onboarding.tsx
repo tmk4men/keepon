@@ -8,9 +8,21 @@ const GOALS: { key: Goal; label: string; sub: string }[] = [
 ]
 
 const CAPACITY: { key: Capacity; label: string; sub: string }[] = [
-  { key: 'low', label: 'ほんの少し', sub: '疲れててもこれなら…という量' },
-  { key: 'mid', label: 'そこそこ', sub: '普通の日にできる量' },
-  { key: 'high', label: 'しっかり', sub: '余裕がある日に動ける量' },
+  {
+    key: 'low',
+    label: 'まずは軽く',
+    sub: '1回 10分くらいまで。運動はしばらくお休み中',
+  },
+  {
+    key: 'mid',
+    label: 'ほどほどに',
+    sub: '1回 15〜20分くらい。ときどき体を動かす',
+  },
+  {
+    key: 'high',
+    label: 'しっかり動く',
+    sub: '1回 20分以上でも平気。運動には慣れている',
+  },
 ]
 
 const FREQ = [2, 3, 4, 5]
@@ -176,10 +188,13 @@ export default function Onboarding({
       {step === 3 && (
         <Step
           num={3}
-          q="疲れている日でも、これくらいなら動ける？"
+          q="ふだん、どれくらい運動できそう？"
           canNext={capacity !== null}
           onNext={next}
         >
+          <p className="ob-q-note">
+            毎日のメニューの強さの基準にします。背伸びせず、今の自分で選んでOK。
+          </p>
           <div className="choice-grid">
             {CAPACITY.map((c) => (
               <button
@@ -193,7 +208,7 @@ export default function Onboarding({
             ))}
           </div>
           <p className="hint">
-            ここを基準に「軽い日のメニュー」が決まります。低めで大丈夫。
+            きつかったら、あとから下げられます。低めスタートが続けるコツ。
           </p>
         </Step>
       )}
