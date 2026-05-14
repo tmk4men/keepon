@@ -34,7 +34,6 @@ export function TimerBar({
   const ss = String(elapsed % 60).padStart(2, '0')
 
   const canFinish = elapsed >= MIN_SECONDS
-  const remain = Math.max(0, MIN_SECONDS - elapsed)
 
   const handleFinish = () => {
     if (canFinish) {
@@ -46,12 +45,7 @@ export function TimerBar({
 
   return (
     <div className={`timer-bar timer-${timer.kind}`}>
-      {earlyHit > 0 && (
-        <div className="timer-warn">
-          まだ早いよ
-          <span>あと{remain}秒</span>
-        </div>
-      )}
+      {earlyHit > 0 && <div className="timer-warn">まだ早いよ</div>}
 
       <button
         className="timer-cancel"

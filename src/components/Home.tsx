@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   daysBetween,
   recordOn,
@@ -6,7 +5,7 @@ import {
   type DayStatus,
 } from '../state'
 import { buildDailyPlan, computeMetrics, type DailyMode } from '../logic'
-import { IconCheck, IconLeaf, IconSpark } from './icons'
+import { IconCheck, IconLeaf, IconSpark, StampDone, StampMin } from './icons'
 
 const MODE_TAG: Record<DailyMode, string | null> = {
   normal: null,
@@ -25,16 +24,13 @@ export default function Home({
   onUnlog: () => void
   onStart: (kind: 'full' | 'minimum', menuTitle: string) => void
 }) {
-  const [editing, setEditing] = useState(false)
   const plan = buildDailyPlan(state, today)
   const metrics = computeMetrics(state, today)
   const todayRec = recordOn(state.records, today)
   const timerRunning = state.timer !== null
 
-  const start = (kind: 'full' | 'minimum', menuTitle: string) => {
-    onStart(kind, menuTitle)
-    setEditing(false)
-  }
+  const fullDone = todayRec?.status === 'full'
+  const minDone = todayRec?.status === 'minimum'
 
   const priorActive = state.records
     .filter(
@@ -51,18 +47,7 @@ export default function Home({
     <div className="screen">
       <Outlook metrics={metrics} />
 
-      {todayRec && !editing && !timerRunning ? (
-        <>
-          <DoneCard
-            status={todayRec.status}
-            priorGap={priorGap}
-            onEdit={() => setEditing(true)}
-          />
-          <button className="text-undo" onClick={onUnlog}>
-            今日のきろくを取り消す
-          </button>
-        </>
-      ) : timerRunning ? (
+      {timerRunning ? (
         <div className="card running-card reveal">
           <span className="running-dot" />
           <h2 className="running-title">運動中</h2>
@@ -74,17 +59,23 @@ export default function Home({
         </div>
       ) : (
         <>
-          {editing && (
-            <p className="edit-note">
-              選び直すと今日のきろくが上書きされます。
-              <button className="link-btn" onClick={() => setEditing(false)}>
-                やめる
-              </button>
-            </p>
+          {todayRec && (
+            <DoneBanner
+              status={todayRec.status}
+              priorGap={priorGap}
+              onUnlog={onUnlog}
+            />
           )}
 
           {/* メインのメニュー */}
-          <div className={`card menu-card mode-${plan.mode} reveal`}>
+          <div
+            className={`card menu-card mode-${plan.mode}${
+              fullDone ? ' is-done' : ''
+            } reveal`}
+          >
+            {fullDone && (
+              <StampDone size={58} className="card-stamp stamp-full" />
+            )}
             <div className="menu-eyebrow">
               <span>今日のメニュー</span>
               {MODE_TAG[plan.mode] && (
@@ -105,17 +96,28 @@ export default function Home({
 
             <div className="menu-foot">
               <span className="menu-minutes">めやす {plan.menu.minutes}分</span>
-              <button
-                className="btn-start"
-                onClick={() => start('full', plan.menu.title)}
-              >
-                開始
-              </button>
+              {fullDone ? (
+                <span className="menu-done-mark">完了</span>
+              ) : (
+                <button
+                  className="btn-start"
+                  onClick={() => onStart('full', plan.menu.title)}
+                >
+                  開始
+                </button>
+              )}
             </div>
           </div>
 
           {/* 最低ライン */}
-          <div className="card menu-card min-line reveal reveal-2">
+          <div
+            className={`card menu-card min-line${
+              minDone ? ' is-done' : ''
+            } reveal reveal-2`}
+          >
+            {minDone && (
+              <StampMin size={58} className="card-stamp stamp-min" />
+            )}
             <div className="menu-eyebrow">
               <span>最低ライン</span>
               <span className="mode-tag min">これだけでも継続成功</span>
@@ -126,12 +128,16 @@ export default function Home({
               <span className="menu-minutes">
                 めやす {plan.minimum.minutes}分
               </span>
-              <button
-                className="btn-start min"
-                onClick={() => start('minimum', plan.minimum.title)}
-              >
-                開始
-              </button>
+              {minDone ? (
+                <span className="menu-done-mark min">完了</span>
+              ) : (
+                <button
+                  className="btn-start min"
+                  onClick={() => onStart('minimum', plan.minimum.title)}
+                >
+                  開始
+                </button>
+              )}
             </div>
           </div>
 
@@ -160,49 +166,49 @@ function Outlook({ metrics }: { metrics: ReturnType<typeof computeMetrics> }) {
   )
 }
 
-function DoneCard({
+function DoneBanner({
   status,
   priorGap,
-  onEdit,
+  onUnlog,
 }: {
   status: DayStatus
   priorGap: number
-  onEdit: () => void
+  onUnlog: () => void
 }) {
   const cameBack = priorGap >= 4 && (status === 'full' || status === 'minimum')
 
   let ringClass = 'level-full'
-  let title = '今日も継続成功'
-  let msg = 'しっかり動けた一日。この積み重ねが、戻る力になる。'
+  let title = '今日は記録ずみ'
+  let sub = 'メニュー完了。おつかれさま。'
   let Icon = IconCheck
 
   if (status === 'minimum') {
     ringClass = 'level-min'
-    title = 'ゼロを作らなかった'
-    msg = '最低ラインでも、立派な継続成功。今日のあなたは止まらなかった。'
+    sub = '最低ライン達成。ゼロを作らなかった。'
   } else if (status === 'rest') {
     ringClass = 'level-rest'
-    title = '計画的なお休み'
-    msg = '休むのも続けるうち。明日はまた軽くからで大丈夫。'
+    sub = '計画的なお休み。これも続けるうち。'
     Icon = IconLeaf
   }
 
   if (cameBack) {
     ringClass = 'level-comeback'
     title = 'おかえり。戻ってこれた'
-    msg = `${priorGap}日空いても、ここに戻ってきた。いちばん難しいことを、今日やった。`
+    sub = `${priorGap}日空いても、ここに戻ってきた。`
     Icon = IconSpark
   }
 
   return (
-    <div className="card done-card reveal">
-      <div className={`done-ring ${ringClass}`}>
-        <Icon size={28} />
+    <div className="done-banner reveal">
+      <div className={`done-banner-ring ${ringClass}`}>
+        <Icon size={19} />
       </div>
-      <div className="done-title">{title}</div>
-      <p className="done-msg">{msg}</p>
-      <button className="btn btn-ghost btn-small" onClick={onEdit}>
-        きろくを変更
+      <div className="done-banner-body">
+        <div className="done-banner-title">{title}</div>
+        <div className="done-banner-sub">{sub}</div>
+      </div>
+      <button className="done-banner-undo" onClick={onUnlog}>
+        取り消す
       </button>
     </div>
   )

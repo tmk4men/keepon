@@ -113,6 +113,17 @@ input {
 
 .screen {
   padding-top: 6px;
+  animation: screen-in 0.36s cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .screen-title {
   font-size: 20px;
@@ -148,25 +159,25 @@ input {
   color: var(--ink);
 }
 
-/* reveal animation */
+/* reveal animation — ふわっと持ち上がって収まる */
 @keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(15px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 .reveal {
-  animation: reveal 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation: reveal 0.52s cubic-bezier(0.16, 0.84, 0.44, 1) both;
 }
 .reveal-2 {
-  animation: reveal 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.07s both;
+  animation: reveal 0.52s cubic-bezier(0.16, 0.84, 0.44, 1) 0.08s both;
 }
 .reveal-3 {
-  animation: reveal 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.14s both;
+  animation: reveal 0.52s cubic-bezier(0.16, 0.84, 0.44, 1) 0.16s both;
 }
 
 /* ---------- outlook (復帰可能性) ---------- */
@@ -362,6 +373,47 @@ input {
   border-top-color: #d4dded;
 }
 
+/* 完了したメニューカード：モノクロSVGスタンプを押した状態 */
+.menu-card.is-done {
+  background: #fbfaf4;
+}
+.menu-card.min-line.is-done {
+  background: #eef2f8;
+}
+.card-stamp {
+  position: absolute;
+  top: 13px;
+  right: 14px;
+  color: var(--accent);
+  animation: card-stamp-in 0.46s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.card-stamp.stamp-min {
+  color: var(--min);
+}
+@keyframes card-stamp-in {
+  0% {
+    opacity: 0;
+    transform: rotate(-26deg) scale(0.2);
+  }
+  62% {
+    opacity: 1;
+    transform: rotate(5deg) scale(1.14);
+  }
+  100% {
+    opacity: 1;
+    transform: rotate(-7deg) scale(1);
+  }
+}
+.menu-done-mark {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.menu-done-mark.min {
+  color: var(--min-deep);
+}
+
 /* ---------- generic buttons ---------- */
 .btn {
   border-radius: 15px;
@@ -380,38 +432,17 @@ input {
   color: #fff;
   box-shadow: 0 4px 12px rgba(63, 125, 110, 0.28);
 }
-.btn-ghost {
-  background: transparent;
-  color: var(--sub);
-  border: 1.5px solid var(--line);
-}
-.btn-small {
-  padding: 9px 16px;
-  font-size: 12.5px;
-  border-radius: 11px;
-  width: auto;
-}
 .btn:disabled {
   background: #ddd8cc;
   color: #fff;
   box-shadow: none;
 }
-.rest-btn {
-  margin-top: 2px;
-  font-size: 13.5px;
-  padding: 14px;
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+  box-shadow: 0 2px 7px rgba(63, 125, 110, 0.24);
 }
-
-.text-undo {
-  display: block;
-  margin: 2px auto 0;
-  background: none;
-  color: var(--sub);
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 8px;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+.btn-start:active {
+  transform: scale(0.95);
 }
 
 /* ---------- running (timer active) ---------- */
@@ -470,65 +501,78 @@ input {
   margin: 8px 8px 0;
 }
 
-.edit-note {
-  font-size: 12px;
-  color: var(--sub);
-  background: var(--warn-soft);
-  border-radius: 12px;
-  padding: 10px 13px;
-  margin: 0 0 13px;
-  line-height: 1.6;
+/* ---------- done banner (記録ずみ) ---------- */
+.done-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 15px;
+  padding: 11px 13px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 13px;
 }
-.link-btn {
-  background: none;
-  color: var(--accent);
-  font-weight: 800;
-  font-size: 12px;
-  padding: 0 0 0 6px;
-  text-decoration: underline;
-}
-
-/* ---------- done card ---------- */
-.done-card {
-  text-align: center;
-  padding: 26px 20px 22px;
-}
-.done-ring {
-  width: 72px;
-  height: 72px;
+.done-banner-ring {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 14px;
   color: #fff;
+  flex-shrink: 0;
+  animation: ring-pop 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-.done-ring.level-full {
+.done-banner-ring.level-full {
   background: var(--accent);
-  box-shadow: 0 6px 16px rgba(63, 125, 110, 0.32);
+  box-shadow: 0 4px 11px rgba(63, 125, 110, 0.3);
 }
-.done-ring.level-min {
+.done-banner-ring.level-min {
   background: var(--min);
-  box-shadow: 0 6px 16px rgba(111, 143, 184, 0.3);
+  box-shadow: 0 4px 11px rgba(111, 143, 184, 0.28);
 }
-.done-ring.level-rest {
+.done-banner-ring.level-rest {
   background: var(--warn);
-  box-shadow: 0 6px 16px rgba(192, 137, 79, 0.3);
+  box-shadow: 0 4px 11px rgba(192, 137, 79, 0.28);
 }
-.done-ring.level-comeback {
+.done-banner-ring.level-comeback {
   background: var(--spark);
-  box-shadow: 0 6px 16px rgba(217, 154, 60, 0.36);
+  box-shadow: 0 4px 11px rgba(217, 154, 60, 0.34);
 }
-.done-title {
-  font-size: 20px;
+@keyframes ring-pop {
+  0% {
+    transform: scale(0) rotate(-30deg);
+  }
+  62% {
+    transform: scale(1.16) rotate(6deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+.done-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+.done-banner-title {
+  font-size: 13.5px;
   font-weight: 800;
-  margin-bottom: 7px;
 }
-.done-msg {
-  font-size: 13px;
+.done-banner-sub {
+  font-size: 11px;
   color: var(--sub);
-  line-height: 1.78;
-  margin: 0 0 16px;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+.done-banner-undo {
+  background: none;
+  color: var(--sub);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 7px 8px;
+  flex-shrink: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* ---------- continuity: resilience ring ---------- */
@@ -749,14 +793,22 @@ input {
 }
 .stamp {
   display: block;
-  animation: stamp-in 0.32s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  animation: stamp-in 0.42s cubic-bezier(0.3, 0.85, 0.4, 1) both;
 }
+/* ハンコをポンと押す感じ：大きく浮いて落ちて、軽く沈んで戻る */
 @keyframes stamp-in {
-  from {
+  0% {
     opacity: 0;
-    transform: scale(1.5) rotate(-11deg);
+    transform: scale(1.75) rotate(-15deg);
   }
-  to {
+  55% {
+    opacity: 1;
+    transform: scale(0.86) rotate(4deg);
+  }
+  76% {
+    transform: scale(1.06) rotate(-1.5deg);
+  }
+  100% {
     opacity: 1;
     transform: scale(1) rotate(0);
   }
@@ -1079,11 +1131,6 @@ input {
   transform: rotate(45deg);
   border-radius: 2px;
 }
-.timer-warn span {
-  font-size: 10px;
-  font-weight: 700;
-  opacity: 0.65;
-}
 @keyframes warn-pop {
   from {
     opacity: 0;
@@ -1390,4 +1437,66 @@ input {
   font-size: 13px;
   font-weight: 800;
   text-align: right;
+}
+
+/* ---------- interaction polish ---------- */
+.choice {
+  transition: border-color 0.16s ease, background 0.16s ease,
+    transform 0.08s ease;
+}
+.choice:active {
+  transform: scale(0.985);
+}
+.cal-nav {
+  transition: transform 0.08s ease, color 0.15s ease;
+}
+.cal-nav:active:not(:disabled) {
+  transform: scale(0.9);
+}
+.cal-nav.next:active:not(:disabled) {
+  transform: rotate(180deg) scale(0.9);
+}
+.timer-cancel,
+.timer-finish {
+  transition: transform 0.08s ease;
+}
+.timer-cancel:active,
+.timer-finish:active {
+  transform: scale(0.95);
+}
+.done-banner-undo:active {
+  opacity: 0.55;
+}
+.ob-back {
+  transition: transform 0.08s ease;
+}
+.ob-back:active {
+  transform: scale(0.92);
+}
+/* タブ切替時、アイコンがやわらかく沈んで上がる */
+.tabbar button.active .tab-ico {
+  animation: tab-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tab-bounce {
+  0% {
+    transform: translateY(2px) scale(0.9);
+  }
+  60% {
+    transform: translateY(-3px) scale(1.12);
+  }
+  100% {
+    transform: translateY(-1px) scale(1.06);
+  }
+}
+
+/* 動きを減らす設定の端末では控えめに */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
