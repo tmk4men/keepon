@@ -180,69 +180,6 @@ input {
   animation: reveal 0.52s cubic-bezier(0.16, 0.84, 0.44, 1) 0.16s both;
 }
 
-/* ---------- outlook (復帰可能性) ---------- */
-.outlook {
-  display: flex;
-  gap: 12px;
-  padding: 2px 0;
-  margin-bottom: 18px;
-  animation: reveal 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
-}
-.outlook-bar {
-  width: 3px;
-  border-radius: 999px;
-  flex-shrink: 0;
-}
-.outlook-body {
-  flex: 1;
-}
-.outlook-head {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-  margin-bottom: 3px;
-}
-.outlook-tag {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  color: var(--sub);
-}
-.outlook-label {
-  font-size: 16px;
-  font-weight: 800;
-}
-.outlook-text {
-  font-size: 11.5px;
-  line-height: 1.65;
-  margin: 0;
-  color: var(--sub);
-}
-.outlook-high .outlook-bar {
-  background: var(--accent);
-}
-.outlook-high .outlook-label {
-  color: var(--accent-deep);
-}
-.outlook-mid .outlook-bar {
-  background: var(--min);
-}
-.outlook-mid .outlook-label {
-  color: var(--min-deep);
-}
-.outlook-low .outlook-bar {
-  background: var(--warn);
-}
-.outlook-low .outlook-label {
-  color: #9a6a37;
-}
-.outlook-new .outlook-bar {
-  background: #cfc8b8;
-}
-.outlook-new .outlook-label {
-  color: var(--sub);
-}
-
 /* ---------- today menu ---------- */
 .menu-card {
   position: relative;
@@ -412,6 +349,63 @@ input {
 }
 .menu-done-mark.min {
   color: var(--min-deep);
+}
+
+/* ---------- menu swiper（今日のメニュー2候補） ---------- */
+.menu-swipe {
+  overflow: hidden;
+}
+.menu-track {
+  display: flex;
+  align-items: flex-start;
+  will-change: transform;
+}
+.menu-slide {
+  flex: 0 0 100%;
+  width: 100%;
+}
+.menu-eyebrow-count {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--sub);
+  background: var(--bg);
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.menu-swipe-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+}
+.min-line .menu-swipe-foot {
+  border-top-color: #d4dded;
+}
+.menu-swipe-hint {
+  font-size: 10.5px;
+  color: var(--sub);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.menu-dots {
+  display: flex;
+  gap: 7px;
+}
+.menu-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line);
+  padding: 0;
+  transition: background 0.22s ease, transform 0.22s ease;
+}
+.menu-dot.active {
+  background: var(--accent);
+  transform: scale(1.3);
 }
 
 /* ---------- generic buttons ---------- */

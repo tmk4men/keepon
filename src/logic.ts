@@ -2,9 +2,10 @@
 
 import { addDays, daysBetween, recordOn, type AppState } from './state'
 import {
-  pickLightMenu,
+  pickLightMenus,
   pickMinimumMenu,
-  pickNormalMenu,
+  pickMinimumMenus,
+  pickNormalMenus,
   type Menu,
 } from './menus'
 
@@ -12,7 +13,7 @@ export type DailyMode = 'normal' | 'light' | 'comeback'
 
 export type DailyPlan = {
   mode: DailyMode
-  menu: Menu // 今日やること（空白日数に応じて負荷が変わる）
+  menuOptions: Menu[] // 今日のメニュー候補（2つ・スワイプで選ぶ）
   minimum: Menu // 最低ライン（ゼロを作らないための保険）
   gapDays: number // 最後に動いた日からの日数
   comebackNote: string | null // 復帰モード時の心理復帰メッセージ
@@ -47,17 +48,23 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
 
   const minimum = pickMinimumMenu(dayIndex)
 
-  let menu: Menu
+  let menuOptions: Menu[]
   if (mode === 'normal') {
-    menu = pickNormalMenu(profile.goal, profile.capacity, dayIndex)
+    menuOptions = pickNormalMenus(profile.goal, profile.capacity, dayIndex)
   } else if (mode === 'light') {
-    menu = pickLightMenu(profile.goal, dayIndex)
+    menuOptions = pickLightMenus(profile.goal, dayIndex)
   } else {
-    // 復帰モードは「今日やること」も最低ラインに寄せる
-    menu = minimum
+    // 復帰モードは「今日やること」も軽い候補に寄せる
+    menuOptions = pickMinimumMenus(dayIndex)
   }
 
-  return { mode, menu, minimum, gapDays, comebackNote: comebackNote(mode, gapDays) }
+  return {
+    mode,
+    menuOptions,
+    minimum,
+    gapDays,
+    comebackNote: comebackNote(mode, gapDays),
+  }
 }
 
 function comebackNote(mode: DailyMode, gapDays: number): string | null {

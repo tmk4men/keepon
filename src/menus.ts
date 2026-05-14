@@ -164,16 +164,27 @@ function rotate<T>(pool: T[], dayIndex: number): T {
   return pool[((dayIndex % pool.length) + pool.length) % pool.length]
 }
 
-export function pickNormalMenu(
+// 同じ日に提示する「2つの候補」を決定的に選ぶ（連続する2件）
+function rotatePair<T>(pool: T[], dayIndex: number): T[] {
+  if (pool.length === 0) throw new Error('empty pool')
+  if (pool.length === 1) return [pool[0], pool[0]]
+  return [rotate(pool, dayIndex), rotate(pool, dayIndex + 1)]
+}
+
+export function pickNormalMenus(
   goal: Goal,
   capacity: Capacity,
   dayIndex: number,
-): Menu {
-  return rotate(capacityPool(NORMAL[goal], capacity), dayIndex)
+): Menu[] {
+  return rotatePair(capacityPool(NORMAL[goal], capacity), dayIndex)
 }
 
-export function pickLightMenu(goal: Goal, dayIndex: number): Menu {
-  return rotate(LIGHT[goal], dayIndex)
+export function pickLightMenus(goal: Goal, dayIndex: number): Menu[] {
+  return rotatePair(LIGHT[goal], dayIndex)
+}
+
+export function pickMinimumMenus(dayIndex: number): Menu[] {
+  return rotatePair(MINIMUM_MENUS, dayIndex)
 }
 
 export function pickMinimumMenu(dayIndex: number): Menu {

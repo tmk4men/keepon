@@ -1,6 +1,7 @@
 import { daysBetween, recordOn, type AppState, type MenuKind } from '../state'
-import { buildDailyPlan, computeMetrics, type DailyMode } from '../logic'
-import { IconCheck, IconSpark, StampDone, StampMin } from './icons'
+import { buildDailyPlan, type DailyMode } from '../logic'
+import { IconCheck, IconSpark, StampDone } from './icons'
+import { MenuSwiper } from './MenuSwiper'
 
 const MODE_TAG: Record<DailyMode, string | null> = {
   normal: null,
@@ -18,7 +19,6 @@ export default function Home({
   onStart: (kind: MenuKind, menuTitle: string) => void
 }) {
   const plan = buildDailyPlan(state, today)
-  const metrics = computeMetrics(state, today)
   const todayRec = recordOn(state.records, today)
   const timerRunning = state.timer !== null
 
@@ -36,8 +36,6 @@ export default function Home({
 
   return (
     <div className="screen">
-      <Outlook metrics={metrics} />
-
       {timerRunning ? (
         <div className="card running-card reveal">
           <span className="running-dot" />
@@ -54,7 +52,7 @@ export default function Home({
             <DoneBanner full={fullDone} minimum={minDone} priorGap={priorGap} />
           )}
 
-          {/* メインのメニュー */}
+          {/* メインのメニュー（2候補をスワイプで選ぶ） */}
           <div
             className={`card menu-card mode-${plan.mode}${
               fullDone ? ' is-done' : ''
@@ -63,37 +61,14 @@ export default function Home({
             {fullDone && (
               <StampDone size={58} className="card-stamp stamp-full" />
             )}
-            <div className="menu-eyebrow">
-              <span>今日のメニュー</span>
-              {MODE_TAG[plan.mode] && (
-                <span className={`mode-tag ${plan.mode}`}>
-                  {MODE_TAG[plan.mode]}
-                </span>
-              )}
-            </div>
-            <h2 className="menu-title">{plan.menu.title}</h2>
-            <p className="menu-detail">{plan.menu.detail}</p>
-
-            {plan.comebackNote && (
-              <div className="comeback-note">
-                <IconSpark size={15} className="cn-ico" />
-                <span>{plan.comebackNote}</span>
-              </div>
-            )}
-
-            <div className="menu-foot">
-              <span className="menu-minutes">めやす {plan.menu.minutes}分</span>
-              {fullDone ? (
-                <span className="menu-done-mark">完了</span>
-              ) : (
-                <button
-                  className="btn-start"
-                  onClick={() => onStart('full', plan.menu.title)}
-                >
-                  開始
-                </button>
-              )}
-            </div>
+            <MenuSwiper
+              menuOptions={plan.menuOptions}
+              modeTag={MODE_TAG[plan.mode]}
+              modeClass={plan.mode}
+              comebackNote={plan.comebackNote}
+              done={fullDone}
+              onStart={onStart}
+            />
           </div>
 
           {/* 最低ライン */}
@@ -102,7 +77,9 @@ export default function Home({
               minDone ? ' is-done' : ''
             } reveal reveal-2`}
           >
-            {minDone && <StampMin size={58} className="card-stamp stamp-min" />}
+            {minDone && (
+              <StampDone size={58} className="card-stamp stamp-min" />
+            )}
             <div className="menu-eyebrow">
               <span>最低ライン</span>
               <span className="mode-tag min">これだけでも継続成功</span>
@@ -133,22 +110,6 @@ export default function Home({
           </p>
         </>
       )}
-    </div>
-  )
-}
-
-function Outlook({ metrics }: { metrics: ReturnType<typeof computeMetrics> }) {
-  const { outlook } = metrics
-  return (
-    <div className={`outlook outlook-${outlook.level}`}>
-      <div className="outlook-bar" />
-      <div className="outlook-body">
-        <div className="outlook-head">
-          <span className="outlook-tag">復帰可能性</span>
-          <span className="outlook-label">{outlook.label}</span>
-        </div>
-        <p className="outlook-text">{outlook.text}</p>
-      </div>
     </div>
   )
 }
