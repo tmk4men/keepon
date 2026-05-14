@@ -16,10 +16,13 @@ export type Profile = {
 }
 
 // 1日の記録。メニューと最低ラインは独立して達成できる。
+// fullMenu / minimumMenu には実施したメニュー名を保存する。
 export type DayRecord = {
   date: string // YYYY-MM-DD
   full: boolean // 今日のメニューを実施した
   minimum: boolean // 最低ラインを実施した
+  fullMenu: string | null // 実施したメニュー名
+  minimumMenu: string | null // 実施した最低ラインの内容
 }
 
 // 進行中のカウントアップタイマー（終了すると kind が記録される）
@@ -87,9 +90,14 @@ function normalizeRecords(raw: unknown): DayRecord[] {
 
     let full = false
     let minimum = false
+    let fullMenu: string | null = null
+    let minimumMenu: string | null = null
     if (typeof rec.full === 'boolean' || typeof rec.minimum === 'boolean') {
       full = rec.full === true
       minimum = rec.minimum === true
+      fullMenu = typeof rec.fullMenu === 'string' ? rec.fullMenu : null
+      minimumMenu =
+        typeof rec.minimumMenu === 'string' ? rec.minimumMenu : null
     } else if (rec.status === 'full') {
       full = true
     } else if (rec.status === 'minimum') {
@@ -102,8 +110,10 @@ function normalizeRecords(raw: unknown): DayRecord[] {
     if (existing) {
       existing.full = existing.full || full
       existing.minimum = existing.minimum || minimum
+      existing.fullMenu = existing.fullMenu ?? fullMenu
+      existing.minimumMenu = existing.minimumMenu ?? minimumMenu
     } else {
-      merged.set(rec.date, { date: rec.date, full, minimum })
+      merged.set(rec.date, { date: rec.date, full, minimum, fullMenu, minimumMenu })
     }
   }
   return [...merged.values()].sort((a, b) => (a.date < b.date ? -1 : 1))
@@ -164,6 +174,7 @@ export function markDone(
   records: DayRecord[],
   date: string,
   kind: MenuKind,
+  menuTitle: string,
 ): DayRecord[] {
   const existing = recordOn(records, date)
   const next = records.filter((r) => r.date !== date)
@@ -171,6 +182,9 @@ export function markDone(
     date,
     full: kind === 'full' ? true : (existing?.full ?? false),
     minimum: kind === 'minimum' ? true : (existing?.minimum ?? false),
+    fullMenu: kind === 'full' ? menuTitle : (existing?.fullMenu ?? null),
+    minimumMenu:
+      kind === 'minimum' ? menuTitle : (existing?.minimumMenu ?? null),
   })
   next.sort((a, b) => (a.date < b.date ? -1 : 1))
   return next

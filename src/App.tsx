@@ -45,10 +45,14 @@ export default function App() {
 
   const finishTimer = () => {
     if (!state.timer) return
-    const kind = state.timer.kind
+    const { kind, menuTitle } = state.timer
     setState((s) =>
       s.timer
-        ? { ...s, records: markDone(s.records, today, kind), timer: null }
+        ? {
+            ...s,
+            records: markDone(s.records, today, kind, menuTitle),
+            timer: null,
+          }
         : s,
     )
     setTab('today')

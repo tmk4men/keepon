@@ -1,12 +1,5 @@
 import { useState } from 'react'
-import {
-  formatJp,
-  parseDate,
-  recordOn,
-  toDateStr,
-  type AppState,
-  type DayRecord,
-} from '../state'
+import { parseDate, recordOn, toDateStr, type AppState } from '../state'
 import { IconArrowBack, StampDone, StampMin } from './icons'
 
 type CellStatus =
@@ -20,10 +13,9 @@ type CellStatus =
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
 
-function recordLabel(r: DayRecord): string {
-  if (r.full && r.minimum) return 'メニュー＋最低ライン'
-  if (r.full) return 'メニュー完了'
-  return '最低ライン達成'
+function formatFull(s: string): string {
+  const d = parseDate(s)
+  return `${d.getMonth() + 1}月${d.getDate()}日（${WEEKDAYS[d.getDay()]}）`
 }
 
 export default function Records({
@@ -39,6 +31,7 @@ export default function Records({
     y: todayDate.getFullYear(),
     m: todayDate.getMonth(),
   })
+  const [selected, setSelected] = useState<string | null>(today)
 
   const monthStart = new Date(view.y, view.m, 1)
   const daysInMonth = new Date(view.y, view.m + 1, 0).getDate()
@@ -77,10 +70,14 @@ export default function Records({
     cells.push({ day: d, date, status })
   }
 
-  const recent = [...state.records]
-    .filter((r) => r.full || r.minimum)
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 14)
+  const selectableStatuses: CellStatus[] = [
+    'full',
+    'minimum',
+    'both',
+    'missed',
+    'pending',
+  ]
+  const selectedRec = selected ? recordOn(state.records, selected) : undefined
 
   return (
     <div className="screen">
@@ -119,25 +116,39 @@ export default function Records({
           {Array.from({ length: leadBlanks }).map((_, i) => (
             <span key={`b${i}`} className="cal-cell blank" />
           ))}
-          {cells.map((c) => (
-            <div
-              key={c.date}
-              className={`cal-cell ${c.status}${
-                c.date === today ? ' is-today' : ''
-              }`}
-            >
-              <span className="cal-day">{c.day}</span>
-              {(c.status === 'full' || c.status === 'both') && (
-                <StampDone size={34} className="stamp stamp-full" />
-              )}
-              {c.status === 'minimum' && (
-                <StampMin size={34} className="stamp stamp-min" />
-              )}
-              {c.status === 'both' && (
-                <StampMin size={18} className="stamp-extra stamp-min" />
-              )}
-            </div>
-          ))}
+          {cells.map((c) => {
+            const tappable = selectableStatuses.includes(c.status)
+            const cls = `cal-cell ${c.status}${
+              c.date === today ? ' is-today' : ''
+            }${c.date === selected ? ' selected' : ''}`
+            const inner = (
+              <>
+                <span className="cal-day">{c.day}</span>
+                {(c.status === 'full' || c.status === 'both') && (
+                  <StampDone size={34} className="stamp stamp-full" />
+                )}
+                {c.status === 'minimum' && (
+                  <StampMin size={34} className="stamp stamp-min" />
+                )}
+                {c.status === 'both' && (
+                  <StampMin size={18} className="stamp-extra stamp-min" />
+                )}
+              </>
+            )
+            return tappable ? (
+              <button
+                key={c.date}
+                className={cls}
+                onClick={() => setSelected(c.date)}
+              >
+                {inner}
+              </button>
+            ) : (
+              <div key={c.date} className={cls}>
+                {inner}
+              </div>
+            )
+          })}
         </div>
 
         <div className="legend">
@@ -162,30 +173,42 @@ export default function Records({
         <Stat n={full + minimum} label="スタンプ合計" tone="total" />
       </div>
 
-      <h3 className="section-title">さいきんの記録</h3>
-      {recent.length === 0 ? (
-        <div className="card">
-          <p className="center-msg">
-            まだスタンプはありません。
-            <br />
-            「今日」タブから、最初の一歩を残しましょう。
+      <h3 className="section-title">この日のきろく</h3>
+      <div className="card day-detail">
+        {selected ? (
+          <>
+            <div className="day-detail-date">{formatFull(selected)}</div>
+            {selectedRec && (selectedRec.full || selectedRec.minimum) ? (
+              <div className="day-detail-items">
+                {selectedRec.full && (
+                  <div className="day-item">
+                    <StampDone size={28} className="day-item-stamp stamp-full" />
+                    <span className="day-item-title">
+                      {selectedRec.fullMenu ?? 'メニューを実施'}
+                    </span>
+                  </div>
+                )}
+                {selectedRec.minimum && (
+                  <div className="day-item">
+                    <StampMin size={28} className="day-item-stamp stamp-min" />
+                    <span className="day-item-title">
+                      {selectedRec.minimumMenu ?? '最低ラインを実施'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="day-detail-empty">
+                この日の記録はありません。
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="day-detail-empty">
+            カレンダーの日付をタップすると、その日にやった内容が表示されます。
           </p>
-        </div>
-      ) : (
-        <div className="card">
-          <ul className="record-list">
-            {recent.map((r) => (
-              <li key={r.date}>
-                <span
-                  className={`dot dot-${r.full ? 'full' : 'minimum'}`}
-                />
-                <span className="r-date">{formatJp(r.date)}</span>
-                <span className="r-label">{recordLabel(r)}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
