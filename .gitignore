@@ -1,0 +1,10 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+*.log
+
+# 企画書（公開リポジトリに含めない）
+*.docx
+~$*.docx

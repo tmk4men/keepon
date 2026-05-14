@@ -1,0 +1,10 @@
+{
+  "name": "KeepOn — 止まっても戻れる",
+  "short_name": "KeepOn",
+  "description": "トレーニングをやめないためのAI復帰支援アプリ",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f1ea",
+  "theme_color": "#3f7d6e",
+  "icons": []
+}
