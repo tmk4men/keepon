@@ -82,6 +82,7 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
       profile.goal,
       effCapacity,
       profile.gender,
+      profile.frequency,
       dayIndex,
     )
   } else if (mode === 'light') {
