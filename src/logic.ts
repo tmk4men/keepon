@@ -1,6 +1,12 @@
 // 復帰支援のコアロジック。連続記録ではなく「止まっても戻れるか」を扱う。
 
-import { addDays, daysBetween, recordOn, type AppState } from './state'
+import {
+  addDays,
+  daysBetween,
+  recordOn,
+  type AppState,
+  type Capacity,
+} from './state'
 import {
   pickLightMenus,
   pickMinimumMenu,
@@ -17,6 +23,26 @@ export type DailyPlan = {
   minimum: Menu // 最低ライン（ゼロを作らないための保険）
   gapDays: number // 最後に動いた日からの日数
   comebackNote: string | null // 復帰モード時の心理復帰メッセージ
+  ageNote: string | null // 年代に合わせた注意メッセージ
+}
+
+// 年齢に応じて実効的な運動量を1段やさしくする（メニュー内容が年代別に変わる）
+function adjustCapacityForAge(cap: Capacity, age: number): Capacity {
+  const order: Capacity[] = ['low', 'mid', 'high']
+  let i = order.indexOf(cap)
+  if (age >= 60) i = Math.max(0, i - 1)
+  else if (age >= 45 && cap === 'high') i = 1
+  return order[i]
+}
+
+function ageNote(age: number): string | null {
+  if (age >= 60) {
+    return '準備運動を長めに。痛みや強い疲れを感じたら、無理せず最低ラインに切り替えてOK。'
+  }
+  if (age >= 45) {
+    return '関節を痛めないよう、はじめに軽い準備運動を。きつければ回数を減らして大丈夫。'
+  }
+  return null
 }
 
 // 最後に「動いた日」（メニュー or 最低ラインを実施）を探す。無ければ null。
@@ -47,10 +73,16 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
   else mode = 'comeback'
 
   const minimum = pickMinimumMenu(dayIndex)
+  const effCapacity = adjustCapacityForAge(profile.capacity, profile.age)
 
   let menuOptions: Menu[]
   if (mode === 'normal') {
-    menuOptions = pickNormalMenus(profile.goal, profile.capacity, dayIndex)
+    menuOptions = pickNormalMenus(
+      profile.goal,
+      effCapacity,
+      profile.gender,
+      dayIndex,
+    )
   } else if (mode === 'light') {
     menuOptions = pickLightMenus(profile.goal, dayIndex)
   } else {
@@ -64,6 +96,7 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
     minimum,
     gapDays,
     comebackNote: comebackNote(mode, gapDays),
+    ageNote: ageNote(profile.age),
   }
 }
 

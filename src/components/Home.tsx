@@ -71,6 +71,8 @@ export default function Home({
             />
           </div>
 
+          {plan.ageNote && <p className="age-note reveal">{plan.ageNote}</p>}
+
           {/* 最低ライン */}
           <div
             className={`card menu-card min-line${
