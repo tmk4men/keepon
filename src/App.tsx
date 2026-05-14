@@ -68,7 +68,7 @@ export default function App() {
           <span className="brand-mark">
             <IconLeaf size={17} />
           </span>
-          <span className="brand-name">KeepOn</span>
+          <span className="brand-name">ツヅキン</span>
         </div>
         <div className="tagline">止まっても、戻れる。</div>
         <button

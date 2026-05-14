@@ -1,6 +1,6 @@
 {
-  "name": "KeepOn — 止まっても戻れる",
-  "short_name": "KeepOn",
+  "name": "ツヅキン — 止まっても戻れる",
+  "short_name": "ツヅキン",
   "description": "トレーニングをやめないためのAI復帰支援アプリ",
   "start_url": "./",
   "display": "standalone",

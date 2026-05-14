@@ -71,7 +71,7 @@ export default function Onboarding({
         <div className="ob-logo">
           <IconLeaf size={30} />
         </div>
-        <h1>KeepOn</h1>
+        <h1>ツヅキン</h1>
         <p className="ob-welcome-catch">
           止まらなくていい。
           <br />
