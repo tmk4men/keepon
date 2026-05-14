@@ -23,11 +23,19 @@ export type DayRecord = {
   status: DayStatus
 }
 
+// 進行中のカウントアップタイマー（終了すると kind で記録される）
+export type RunningTimer = {
+  kind: 'full' | 'minimum'
+  menuTitle: string
+  startedAt: number // epoch ms
+}
+
 export type AppState = {
   version: number
   profile: Profile | null
   records: DayRecord[] // date昇順を保つ
   createdAt: string // YYYY-MM-DD
+  timer: RunningTimer | null
 }
 
 const STORAGE_KEY = 'keepon.state.v1'
@@ -81,13 +89,20 @@ export function loadState(): AppState {
           profile: parsed.profile ?? null,
           records: Array.isArray(parsed.records) ? parsed.records : [],
           createdAt: parsed.createdAt ?? todayStr(),
+          timer: parsed.timer ?? null,
         }
       }
     }
   } catch {
     // 壊れていたら初期化
   }
-  return { version: STATE_VERSION, profile: null, records: [], createdAt: todayStr() }
+  return {
+    version: STATE_VERSION,
+    profile: null,
+    records: [],
+    createdAt: todayStr(),
+    timer: null,
+  }
 }
 
 export function saveState(state: AppState): void {
