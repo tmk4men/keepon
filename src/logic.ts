@@ -3,6 +3,7 @@
 import {
   addDays,
   daysBetween,
+  parseDate,
   recordOn,
   type AppState,
   type Capacity,
@@ -282,4 +283,25 @@ function clamp01(n: number): number {
   if (n < 0) return 0
   if (n > 1) return 1
   return n
+}
+
+// ---- 今週のペース（目標頻度との進捗） ----
+
+export type WeeklyPace = {
+  done: number // 今週、動けた日数
+  target: number // 目標頻度（週あたり）
+  met: boolean
+}
+
+export function weeklyProgress(state: AppState, today: string): WeeklyPace {
+  const dow = parseDate(today).getDay() // 0=日曜
+  const weekStart = addDays(today, -dow)
+  let done = 0
+  for (const r of state.records) {
+    if (r.date >= weekStart && r.date <= today && (r.full || r.minimum)) {
+      done++
+    }
+  }
+  const target = state.profile?.frequency ?? 3
+  return { done, target, met: done >= target }
 }

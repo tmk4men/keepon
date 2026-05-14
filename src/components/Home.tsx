@@ -1,7 +1,8 @@
 import { daysBetween, recordOn, type AppState, type MenuKind } from '../state'
-import { buildDailyPlan, type DailyMode } from '../logic'
+import { buildDailyPlan, weeklyProgress, type WeeklyPace } from '../logic'
 import { IconCheck, IconSpark, StampDone } from './icons'
 import { MenuSwiper } from './MenuSwiper'
+import type { DailyMode } from '../logic'
 
 const MODE_TAG: Record<DailyMode, string | null> = {
   normal: null,
@@ -19,6 +20,7 @@ export default function Home({
   onStart: (kind: MenuKind, menuTitle: string) => void
 }) {
   const plan = buildDailyPlan(state, today)
+  const pace = weeklyProgress(state, today)
   const todayRec = recordOn(state.records, today)
   const timerRunning = state.timer !== null
 
@@ -36,6 +38,8 @@ export default function Home({
 
   return (
     <div className="screen">
+      <WeeklyPaceBar pace={pace} />
+
       {timerRunning ? (
         <div className="card running-card reveal">
           <span className="running-dot" />
@@ -112,6 +116,38 @@ export default function Home({
           </p>
         </>
       )}
+    </div>
+  )
+}
+
+function WeeklyPaceBar({ pace }: { pace: WeeklyPace }) {
+  const dots = Math.max(pace.target, pace.done)
+  return (
+    <div className={`week-pace${pace.met ? ' met' : ''}`}>
+      <div className="week-pace-head">
+        <span className="week-pace-label">今週のペース</span>
+        <span className="week-pace-count">
+          {pace.done}
+          <span className="week-pace-sep"> / </span>
+          {pace.target}
+          <span className="unit">回</span>
+        </span>
+      </div>
+      <div className="week-pace-dots">
+        {Array.from({ length: dots }).map((_, i) => (
+          <span
+            key={i}
+            className={`week-dot${i < pace.done ? ' on' : ''}${
+              i >= pace.target ? ' bonus' : ''
+            }`}
+          />
+        ))}
+      </div>
+      <p className="week-pace-msg">
+        {pace.met
+          ? '今週の目標、クリア。ここからは全部おまけ。'
+          : '焦らなくて大丈夫。1日でも動けたら、それがペース。'}
+      </p>
     </div>
   )
 }

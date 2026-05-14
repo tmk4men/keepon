@@ -178,6 +178,80 @@ input {
   animation: reveal 0.52s cubic-bezier(0.16, 0.84, 0.44, 1) 0.16s both;
 }
 
+/* ---------- weekly pace（今週のペース） ---------- */
+.week-pace {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow-soft);
+  margin-bottom: 14px;
+  border: 1.5px solid transparent;
+  animation: reveal 0.5s cubic-bezier(0.16, 0.84, 0.44, 1) both;
+}
+.week-pace.met {
+  background: var(--accent-soft);
+  border-color: #c9e0d6;
+}
+.week-pace-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.week-pace-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--sub);
+}
+.week-pace.met .week-pace-label {
+  color: var(--accent-deep);
+}
+.week-pace-count {
+  font-size: 17px;
+  font-weight: 800;
+}
+.week-pace-sep {
+  color: var(--sub);
+  font-weight: 700;
+}
+.week-pace-count .unit {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sub);
+  margin-left: 1px;
+}
+.week-pace.met .week-pace-count {
+  color: var(--accent-deep);
+}
+.week-pace-dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 9px;
+}
+.week-dot {
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background 0.3s ease;
+}
+.week-dot.on {
+  background: var(--accent);
+}
+.week-dot.bonus.on {
+  background: var(--spark);
+}
+.week-pace-msg {
+  font-size: 11px;
+  color: var(--sub);
+  line-height: 1.55;
+  margin: 0;
+}
+.week-pace.met .week-pace-msg {
+  color: var(--accent-deep);
+}
+
 /* ---------- today menu ---------- */
 .menu-card {
   position: relative;
