@@ -79,28 +79,3 @@ export function TimerBar({
     </div>
   )
 }
-
-export function FinishedBar({
-  kind,
-  onHome,
-}: {
-  kind: 'full' | 'minimum'
-  onHome: () => void
-}) {
-  return (
-    <div className="timer-bar timer-done">
-      <div className="timer-main timer-done-main">
-        <div className="timer-status">
-          <IconCheck size={14} />
-          記録しました
-        </div>
-        <div className="timer-done-label">
-          {kind === 'minimum' ? '最低ライン達成' : 'メニュー完了'}・おつかれさま
-        </div>
-      </div>
-      <button className="timer-finish" onClick={onHome}>
-        ホームに戻る
-      </button>
-    </div>
-  )
-}

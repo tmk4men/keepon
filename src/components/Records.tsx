@@ -5,19 +5,26 @@ import {
   recordOn,
   toDateStr,
   type AppState,
-  type DayStatus,
+  type DayRecord,
 } from '../state'
 import { IconArrowBack, StampDone, StampMin } from './icons'
 
-type CellStatus = DayStatus | 'missed' | 'pending' | 'future' | 'before'
-
-const STATUS_LABEL: Record<DayStatus, string> = {
-  full: 'メニュー完了',
-  minimum: '最低ライン達成',
-  rest: '計画的なお休み',
-}
+type CellStatus =
+  | 'full'
+  | 'minimum'
+  | 'both'
+  | 'missed'
+  | 'pending'
+  | 'future'
+  | 'before'
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
+
+function recordLabel(r: DayRecord): string {
+  if (r.full && r.minimum) return 'メニュー＋最低ライン'
+  if (r.full) return 'メニュー完了'
+  return '最低ライン達成'
+}
 
 export default function Records({
   state,
@@ -51,7 +58,7 @@ export default function Records({
     })
   }
 
-  // 月内集計
+  // 月内集計（スタンプは種別ごとに数える）
   let full = 0
   let minimum = 0
   const cells: { day: number; date: string; status: CellStatus }[] = []
@@ -61,25 +68,24 @@ export default function Records({
     let status: CellStatus
     if (date > today) status = 'future'
     else if (date < state.createdAt) status = 'before'
-    else if (rec) {
-      status = rec.status
-      if (rec.status === 'full') full++
-      else if (rec.status === 'minimum') minimum++
+    else if (rec && (rec.full || rec.minimum)) {
+      if (rec.full) full++
+      if (rec.minimum) minimum++
+      status = rec.full && rec.minimum ? 'both' : rec.full ? 'full' : 'minimum'
     } else if (date === today) status = 'pending'
     else status = 'missed'
     cells.push({ day: d, date, status })
   }
 
   const recent = [...state.records]
+    .filter((r) => r.full || r.minimum)
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .slice(0, 14)
 
   return (
     <div className="screen">
       <h2 className="screen-title">きろく</h2>
-      <p className="screen-sub">
-        動けた日に、スタンプがたまっていきます。
-      </p>
+      <p className="screen-sub">動けた日に、スタンプがたまっていきます。</p>
 
       <div className="card stamp-card-sheet">
         <div className="cal-head">
@@ -121,11 +127,14 @@ export default function Records({
               }`}
             >
               <span className="cal-day">{c.day}</span>
-              {c.status === 'full' && (
+              {(c.status === 'full' || c.status === 'both') && (
                 <StampDone size={34} className="stamp stamp-full" />
               )}
               {c.status === 'minimum' && (
                 <StampMin size={34} className="stamp stamp-min" />
+              )}
+              {c.status === 'both' && (
+                <StampMin size={18} className="stamp-extra stamp-min" />
               )}
             </div>
           ))}
@@ -167,9 +176,11 @@ export default function Records({
           <ul className="record-list">
             {recent.map((r) => (
               <li key={r.date}>
-                <span className={`dot dot-${r.status}`} />
+                <span
+                  className={`dot dot-${r.full ? 'full' : 'minimum'}`}
+                />
                 <span className="r-date">{formatJp(r.date)}</span>
-                <span className="r-label">{STATUS_LABEL[r.status]}</span>
+                <span className="r-label">{recordLabel(r)}</span>
               </li>
             ))}
           </ul>

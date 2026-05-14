@@ -531,10 +531,6 @@ input {
   background: var(--min);
   box-shadow: 0 4px 11px rgba(111, 143, 184, 0.28);
 }
-.done-banner-ring.level-rest {
-  background: var(--warn);
-  box-shadow: 0 4px 11px rgba(192, 137, 79, 0.28);
-}
 .done-banner-ring.level-comeback {
   background: var(--spark);
   box-shadow: 0 4px 11px rgba(217, 154, 60, 0.34);
@@ -813,6 +809,12 @@ input {
     transform: scale(1) rotate(0);
   }
 }
+.stamp-extra {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  animation: stamp-in 0.42s cubic-bezier(0.3, 0.85, 0.4, 1) 0.06s both;
+}
 .stamp-full {
   color: var(--accent);
 }
@@ -820,7 +822,8 @@ input {
   color: var(--min);
 }
 .cal-cell.full,
-.cal-cell.minimum {
+.cal-cell.minimum,
+.cal-cell.both {
   background: #fffdf8;
 }
 .cal-cell.full .cal-day {
@@ -834,9 +837,6 @@ input {
 }
 .cal-cell.missed .cal-day {
   color: #d0c9b8;
-}
-.cal-cell.rest .cal-day {
-  color: var(--warn);
 }
 .cal-cell.pending {
   background: #fffdf8;
@@ -952,9 +952,6 @@ input {
 }
 .dot-minimum {
   background: var(--min);
-}
-.dot-rest {
-  background: var(--warn);
 }
 .record-list .r-date {
   color: var(--sub);
@@ -1081,27 +1078,6 @@ input {
 }
 .timer-minimum .timer-finish {
   color: var(--min-deep);
-}
-
-.timer-done {
-  background: var(--accent);
-  box-shadow: 0 10px 30px rgba(63, 125, 110, 0.4);
-}
-.timer-done-main {
-  text-align: left;
-}
-.timer-done .timer-status {
-  justify-content: flex-start;
-  opacity: 1;
-  font-size: 11px;
-}
-.timer-done-label {
-  font-size: 11px;
-  opacity: 0.85;
-  margin-top: 3px;
-}
-.timer-done .timer-finish {
-  color: var(--accent-deep);
 }
 
 .timer-warn {

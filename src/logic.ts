@@ -1,12 +1,6 @@
 // 復帰支援のコアロジック。連続記録ではなく「止まっても戻れるか」を扱う。
 
-import {
-  addDays,
-  daysBetween,
-  recordOn,
-  type AppState,
-  type DayStatus,
-} from './state'
+import { addDays, daysBetween, recordOn, type AppState } from './state'
 import {
   pickLightMenu,
   pickMinimumMenu,
@@ -24,17 +18,11 @@ export type DailyPlan = {
   comebackNote: string | null // 復帰モード時の心理復帰メッセージ
 }
 
-const ACTIVE: DayStatus[] = ['full', 'minimum']
-
-function isActive(s: DayStatus | undefined): boolean {
-  return s === 'full' || s === 'minimum'
-}
-
-// 最後に「動いた日」（full/minimum）を探す。無ければ null。
+// 最後に「動いた日」（メニュー or 最低ラインを実施）を探す。無ければ null。
 function lastActiveDate(state: AppState, today: string): string | null {
   let best: string | null = null
   for (const r of state.records) {
-    if (r.date <= today && isActive(r.status)) {
+    if (r.date <= today && (r.full || r.minimum)) {
       if (best === null || r.date > best) best = r.date
     }
   }
@@ -83,32 +71,20 @@ function comebackNote(mode: DailyMode, gapDays: number): string | null {
   return '間が空いた＝終わり、じゃない。今日できる一番小さいことから、もう一度。'
 }
 
-// ---- 記録タイムライン（カレンダー表示・指標算出の共通土台） ----
+// ---- 記録タイムライン（指標算出の共通土台） ----
 
-export type TimelineStatus =
-  | 'full'
-  | 'minimum'
-  | 'rest'
-  | 'missed' // 過去日で記録なし＝未達成
-  | 'pending' // 今日でまだ未記録
-  | 'future'
-
+export type TimelineStatus = 'active' | 'missed' | 'pending' | 'future'
 export type TimelineDay = { date: string; status: TimelineStatus }
 
-export function buildTimeline(
-  state: AppState,
-  today: string,
-  fromDate?: string,
-): TimelineDay[] {
-  const start = fromDate ?? state.createdAt
+export function buildTimeline(state: AppState, today: string): TimelineDay[] {
   const days: TimelineDay[] = []
-  let cursor = start
+  let cursor = state.createdAt
   // 念のため上限（5年）
   for (let i = 0; i < 365 * 5; i++) {
     let status: TimelineStatus
     const rec = recordOn(state.records, cursor)
     if (cursor > today) status = 'future'
-    else if (rec) status = rec.status
+    else if (rec && (rec.full || rec.minimum)) status = 'active'
     else if (cursor === today) status = 'pending'
     else status = 'missed'
     days.push({ date: cursor, status })
@@ -125,10 +101,9 @@ export type RecoveryLevel = 'high' | 'mid' | 'low' | 'new'
 export type Metrics = {
   hasData: boolean
   daysElapsed: number
-  totalActive: number
-  fullCount: number
-  minimumCount: number
-  restCount: number
+  totalActive: number // 何かしら動けた日数
+  fullCount: number // メニューを実施した回数
+  minimumCount: number // 最低ラインを実施した回数
   comebackCount: number // 空白から戻ってこれた回数（ごほうび指標）
   setbackCount: number // 挫折（空白）が発生した回数
   comebackRate: number // 0..1
@@ -145,49 +120,42 @@ export function computeMetrics(state: AppState, today: string): Metrics {
 
   let fullCount = 0
   let minimumCount = 0
-  let restCount = 0
+  let totalActive = 0
+  for (const r of state.records) {
+    if (r.date > today) continue
+    if (r.full) fullCount++
+    if (r.minimum) minimumCount++
+    if (r.full || r.minimum) totalActive++
+  }
 
   // 空白（missed の連続）を走査。最初に動いた日より前は対象外。
   let seenActive = false
   let gap = 0
   const recoveredGaps: number[] = []
   let longestGap = 0
-  let currentGap = 0
 
   for (const day of timeline) {
     const s = day.status
     if (s === 'future') break
-    if (s === 'full') fullCount++
-    if (s === 'minimum') minimumCount++
-    if (s === 'rest') restCount++
-
+    if (s === 'pending') break // 今日まだ未実施：直前までの空白は進行中
     if (!seenActive) {
-      if (s === 'full' || s === 'minimum') seenActive = true
+      if (s === 'active') seenActive = true
       continue
     }
-
     if (s === 'missed') {
       gap++
       continue
     }
-    // rest は中立（空白を割らない・閉じない）
-    if (s === 'rest') continue
-    if (s === 'pending') {
-      // 今日まだ未記録：直前までの空白は「進行中」
-      break
-    }
-    // ここに来るのは full / minimum＝空白を閉じる＝復帰
+    // s === 'active'：空白を閉じる＝復帰
     if (gap > 0) {
       recoveredGaps.push(gap)
       if (gap > longestGap) longestGap = gap
     }
     gap = 0
   }
-  // ループ後に残った gap は進行中の空白
-  currentGap = gap
+  const currentGap = gap
   if (currentGap > longestGap) longestGap = currentGap
 
-  const totalActive = fullCount + minimumCount
   const comebackCount = recoveredGaps.length
   const setbackCount = comebackCount + (currentGap > 0 ? 1 : 0)
   const comebackRate = setbackCount > 0 ? comebackCount / setbackCount : 1
@@ -196,22 +164,16 @@ export function computeMetrics(state: AppState, today: string): Metrics {
       ? recoveredGaps.reduce((a, b) => a + b, 0) / comebackCount
       : 0
 
-  const hasData = totalActive > 0 || restCount > 0
+  const hasData = totalActive > 0
 
   // ---- 崩壊耐性スコア（0..100） ----
-  // 4要素の合成：復帰率・戻る速度・自分の目標頻度の達成度・直近の空白
-  const rateScore = comebackRate // 0..1
-
+  const rateScore = comebackRate
   const speedScore =
-    comebackCount === 0
-      ? 1 // 戻る必要がなかった＝good
-      : clamp01(1 - (avgComebackDays - 1) / 6)
-
+    comebackCount === 0 ? 1 : clamp01(1 - (avgComebackDays - 1) / 6)
   const targetPerDay = (state.profile?.frequency ?? 3) / 7
   const activeRatio = daysElapsed > 0 ? totalActive / daysElapsed : 0
   const consistencyScore =
     targetPerDay > 0 ? clamp01(activeRatio / targetPerDay) : 0
-
   const recencyScore = clamp01(1 - currentGap / 7)
 
   const resilience = hasData
@@ -229,7 +191,6 @@ export function computeMetrics(state: AppState, today: string): Metrics {
     totalActive,
     fullCount,
     minimumCount,
-    restCount,
     comebackCount,
     setbackCount,
     comebackRate,
@@ -282,5 +243,3 @@ function clamp01(n: number): number {
   if (n > 1) return 1
   return n
 }
-
-export { ACTIVE }

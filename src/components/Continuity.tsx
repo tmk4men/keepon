@@ -85,14 +85,14 @@ export default function Continuity({
       <div className="card metrics-card reveal-3">
         <Metric
           name="動けた日"
-          desc={`通常 ${m.fullCount}日 ／ 最低ライン ${m.minimumCount}日`}
+          desc={`メニュー ${m.fullCount}回 ／ 最低ライン ${m.minimumCount}回`}
           value={`${m.totalActive}`}
           unit="日"
         />
         <Metric
-          name="計画的なお休み"
-          desc="サボりではなく、選んで休んだ日"
-          value={`${m.restCount}`}
+          name="最長だった空白"
+          desc="これだけ空いても、ここまで戻ってこれた"
+          value={`${m.longestGap}`}
           unit="日"
         />
         <Metric

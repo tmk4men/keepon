@@ -1,11 +1,6 @@
-import {
-  daysBetween,
-  recordOn,
-  type AppState,
-  type DayStatus,
-} from '../state'
+import { daysBetween, recordOn, type AppState, type MenuKind } from '../state'
 import { buildDailyPlan, computeMetrics, type DailyMode } from '../logic'
-import { IconCheck, IconLeaf, IconSpark, StampDone, StampMin } from './icons'
+import { IconCheck, IconSpark, StampDone, StampMin } from './icons'
 
 const MODE_TAG: Record<DailyMode, string | null> = {
   normal: null,
@@ -16,26 +11,22 @@ const MODE_TAG: Record<DailyMode, string | null> = {
 export default function Home({
   state,
   today,
-  onUnlog,
   onStart,
 }: {
   state: AppState
   today: string
-  onUnlog: () => void
-  onStart: (kind: 'full' | 'minimum', menuTitle: string) => void
+  onStart: (kind: MenuKind, menuTitle: string) => void
 }) {
   const plan = buildDailyPlan(state, today)
   const metrics = computeMetrics(state, today)
   const todayRec = recordOn(state.records, today)
   const timerRunning = state.timer !== null
 
-  const fullDone = todayRec?.status === 'full'
-  const minDone = todayRec?.status === 'minimum'
+  const fullDone = todayRec?.full === true
+  const minDone = todayRec?.minimum === true
 
   const priorActive = state.records
-    .filter(
-      (r) => r.date < today && (r.status === 'full' || r.status === 'minimum'),
-    )
+    .filter((r) => r.date < today && (r.full || r.minimum))
     .map((r) => r.date)
     .sort()
     .pop()
@@ -59,12 +50,8 @@ export default function Home({
         </div>
       ) : (
         <>
-          {todayRec && (
-            <DoneBanner
-              status={todayRec.status}
-              priorGap={priorGap}
-              onUnlog={onUnlog}
-            />
+          {(fullDone || minDone) && (
+            <DoneBanner full={fullDone} minimum={minDone} priorGap={priorGap} />
           )}
 
           {/* メインのメニュー */}
@@ -115,9 +102,7 @@ export default function Home({
               minDone ? ' is-done' : ''
             } reveal reveal-2`}
           >
-            {minDone && (
-              <StampMin size={58} className="card-stamp stamp-min" />
-            )}
+            {minDone && <StampMin size={58} className="card-stamp stamp-min" />}
             <div className="menu-eyebrow">
               <span>最低ライン</span>
               <span className="mode-tag min">これだけでも継続成功</span>
@@ -142,6 +127,8 @@ export default function Home({
           </div>
 
           <p className="foot-note reveal reveal-3">
+            メニューと最低ラインは、両方やってもOK。
+            <br />
             「開始」を押すと下でタイマーが動き、終了すると自動で記録されます。
           </p>
         </>
@@ -167,28 +154,27 @@ function Outlook({ metrics }: { metrics: ReturnType<typeof computeMetrics> }) {
 }
 
 function DoneBanner({
-  status,
+  full,
+  minimum,
   priorGap,
-  onUnlog,
 }: {
-  status: DayStatus
+  full: boolean
+  minimum: boolean
   priorGap: number
-  onUnlog: () => void
 }) {
-  const cameBack = priorGap >= 4 && (status === 'full' || status === 'minimum')
+  const cameBack = priorGap >= 4
 
-  let ringClass = 'level-full'
+  let ringClass = full ? 'level-full' : 'level-min'
   let title = '今日は記録ずみ'
-  let sub = 'メニュー完了。おつかれさま。'
+  let sub: string
   let Icon = IconCheck
 
-  if (status === 'minimum') {
-    ringClass = 'level-min'
+  if (full && minimum) {
+    sub = 'メニューと最低ライン、両方やった。すごい。'
+  } else if (full) {
+    sub = 'メニュー完了。おつかれさま。'
+  } else {
     sub = '最低ライン達成。ゼロを作らなかった。'
-  } else if (status === 'rest') {
-    ringClass = 'level-rest'
-    sub = '計画的なお休み。これも続けるうち。'
-    Icon = IconLeaf
   }
 
   if (cameBack) {
@@ -207,9 +193,6 @@ function DoneBanner({
         <div className="done-banner-title">{title}</div>
         <div className="done-banner-sub">{sub}</div>
       </div>
-      <button className="done-banner-undo" onClick={onUnlog}>
-        取り消す
-      </button>
     </div>
   )
 }
