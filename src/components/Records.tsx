@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react'
 import { parseDate, recordOn, toDateStr, type AppState } from '../state'
-import { IconArrowBack, StampDone, StampMin } from './icons'
+import { IconArrowBack, StampMin, StampStar } from './icons'
 
 type CellStatus =
   | 'full'
@@ -138,7 +138,7 @@ export default function Records({
               <>
                 <span className="cal-day">{c.day}</span>
                 {(c.status === 'full' || c.status === 'both') && (
-                  <StampDone size={34} className="stamp stamp-full" />
+                  <StampStar size={34} className="stamp stamp-full" />
                 )}
                 {c.status === 'minimum' && (
                   <StampMin size={34} className="stamp stamp-min" />
@@ -181,7 +181,7 @@ export default function Records({
                       <div className="day-pop-items">
                         {selectedRec.full && (
                           <div className="day-item">
-                            <StampDone
+                            <StampStar
                               size={26}
                               className="day-item-stamp stamp-full"
                             />
@@ -216,7 +216,7 @@ export default function Records({
 
         <div className="legend">
           <span>
-            <StampDone size={22} className="lg-stamp stamp-full" />
+            <StampStar size={22} className="lg-stamp stamp-full" />
             メニュー完了
           </span>
           <span>

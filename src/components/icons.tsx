@@ -125,6 +125,36 @@ export function StampDone({ size = 30, className }: P) {
   )
 }
 
+// ハンコ風スタンプ：今日のメニュー達成（星の判子・特別マーク）
+export function StampStar({ size = 30, className }: P) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      fill="none"
+      stroke="currentColor"
+      className={className}
+    >
+      <g transform="rotate(-11 20 20)">
+        <circle cx="20" cy="20" r="15.4" strokeWidth="2" />
+        <circle
+          cx="20"
+          cy="20"
+          r="11.8"
+          strokeWidth="1"
+          strokeDasharray="1.4 2.3"
+        />
+        <path
+          d="M20 11 L22.2 17 L28.6 17.2 L23.5 21.1 L25.3 27.3 L20 23.7 L14.7 27.3 L16.5 21.1 L11.4 17.2 L17.8 17 Z"
+          fill="currentColor"
+          stroke="none"
+        />
+      </g>
+    </svg>
+  )
+}
+
 // ハンコ風スタンプ：最低ライン達成（点の判子）
 export function StampMin({ size = 30, className }: P) {
   return (
