@@ -71,6 +71,7 @@ export default function Home({
               modeClass={plan.mode}
               comebackNote={plan.comebackNote}
               done={fullDone}
+              timeEase={plan.timeEase}
               onStart={onStart}
             />
           </div>

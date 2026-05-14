@@ -1,7 +1,7 @@
 {
-  "name": "ツヅキン — 止まっても戻れる",
+  "name": "ツヅキン — 止まっても戻れるボディメイク",
   "short_name": "ツヅキン",
-  "description": "止まっても戻れる、トレーニング復帰支援アプリ",
+  "description": "止まっても戻れるボディメイク。トレーニング復帰支援アプリ",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f4f1ea",

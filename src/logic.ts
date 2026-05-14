@@ -25,6 +25,48 @@ export type DailyPlan = {
   gapDays: number // 最後に動いた日からの日数
   comebackNote: string | null // 復帰モード時の心理復帰メッセージ
   ageNote: string | null // 年代に合わせた注意メッセージ
+  timeEase: number // めやす時間の倍率（1=通常、<1=復帰中で緩め）
+}
+
+const MODE_ORDER: Record<DailyMode, number> = {
+  comeback: 0,
+  light: 1,
+  normal: 2,
+}
+
+// 2つのモードのうち、よりやさしい方を返す
+function gentler(a: DailyMode, b: DailyMode): DailyMode {
+  return MODE_ORDER[a] <= MODE_ORDER[b] ? a : b
+}
+
+// 復帰ランプ：直近の大きな空白（4日以上）から段階的に元のペースへ戻す。
+// 大空白が明けた後、活動日数が増えるにつれ comeback → light → 通常 へ。
+function recoveryRamp(state: AppState, today: string): DailyMode | null {
+  const timeline = buildTimeline(state, today)
+  let gapRun = 0
+  let bigGapLen = 0
+  let activeAfter = 0
+  let sawBigGap = false
+  for (const day of timeline) {
+    if (day.status === 'future' || day.status === 'pending') break
+    if (day.status === 'missed') {
+      gapRun++
+      continue
+    }
+    // active な日
+    if (gapRun >= 4) {
+      bigGapLen = gapRun
+      activeAfter = 0
+      sawBigGap = true
+    }
+    if (sawBigGap) activeAfter++
+    gapRun = 0
+  }
+  if (!sawBigGap) return null
+  // 空白が長いほどランプも長く（3〜6日）
+  const rampLength = Math.min(6, Math.max(3, Math.ceil(bigGapLen / 2)))
+  if (activeAfter >= rampLength) return null // ランプ終了＝通常へ
+  return activeAfter <= Math.floor(rampLength / 2) ? 'comeback' : 'light'
 }
 
 // 年齢に応じて実効的な運動量を1段やさしくする（メニュー内容が年代別に変わる）
@@ -68,10 +110,14 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
     ? daysBetween(lastActive, today)
     : daysBetween(state.createdAt, today)
 
-  let mode: DailyMode
-  if (gapDays <= 1) mode = 'normal'
-  else if (gapDays <= 3) mode = 'light'
-  else mode = 'comeback'
+  let gapMode: DailyMode
+  if (gapDays <= 1) gapMode = 'normal'
+  else if (gapDays <= 3) gapMode = 'light'
+  else gapMode = 'comeback'
+
+  // 空白由来のモードと、復帰ランプのモードの「やさしい方」を採用
+  const ramp = recoveryRamp(state, today)
+  const mode: DailyMode = ramp ? gentler(gapMode, ramp) : gapMode
 
   const minimum = pickMinimumMenu(dayIndex)
   const effCapacity = adjustCapacityForAge(profile.capacity, profile.age)
@@ -92,25 +138,33 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
     menuOptions = pickMinimumMenus(dayIndex)
   }
 
+  // 復帰中はめやす時間も緩める
+  const timeEase = mode === 'normal' ? 1 : mode === 'light' ? 0.7 : 0.6
+
   return {
     mode,
     menuOptions,
     minimum,
     gapDays,
-    comebackNote: comebackNote(mode, gapDays),
+    comebackNote: buildNote(mode, gapDays),
     ageNote: ageNote(profile.age),
+    timeEase,
   }
 }
 
-function comebackNote(mode: DailyMode, gapDays: number): string | null {
+function buildNote(mode: DailyMode, gapDays: number): string | null {
   if (mode === 'normal') return null
-  if (mode === 'light') {
-    return '数日空いても大丈夫。今日は軽めにして、リズムだけ取り戻そう。'
+  if (gapDays >= 7) {
+    return '間が空いた＝終わり、じゃない。今日できる一番小さいことから、もう一度。'
   }
-  if (gapDays <= 6) {
+  if (gapDays >= 4) {
     return 'ひさしぶり。ここで戻れたら、それが一番すごいこと。最低ラインでも100点。'
   }
-  return '間が空いた＝終わり、じゃない。今日できる一番小さいことから、もう一度。'
+  if (gapDays >= 2) {
+    return '数日空いても大丈夫。今日は軽めにして、リズムだけ取り戻そう。'
+  }
+  // 空白は無いが light/comeback ＝ 復帰ランプの途中
+  return 'まだ復帰の途中。今日は控えめでOK。数日かけて、元のペースに戻していこう。'
 }
 
 // ---- 記録タイムライン（指標算出の共通土台） ----

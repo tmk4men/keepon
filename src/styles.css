@@ -369,6 +369,16 @@ input {
   color: var(--sub);
   font-weight: 700;
 }
+.menu-ease {
+  display: inline-block;
+  margin-left: 7px;
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #9c6d1f;
+  background: var(--spark-soft);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
 .btn-start {
   background: linear-gradient(180deg, #4a8a7a, var(--accent));
   color: #fff;
@@ -1377,15 +1387,13 @@ button.cal-cell:active {
   padding-top: calc(54px + env(safe-area-inset-top));
 }
 .ob-logo {
-  width: 60px;
-  height: 60px;
-  border-radius: 20px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  object-fit: cover;
+  display: block;
   margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 .ob-welcome h1 {
   font-size: 30px;

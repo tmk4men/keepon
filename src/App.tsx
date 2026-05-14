@@ -68,7 +68,7 @@ export default function App() {
           <img className="brand-mark" src="./icon.png" alt="" />
           <span className="brand-name">ツヅキン</span>
         </div>
-        <div className="tagline">止まっても、戻れる。</div>
+        <div className="tagline">止まっても戻れるボディメイク</div>
         <button
           className="header-menu"
           onClick={() => setSettingsOpen(true)}

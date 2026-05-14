@@ -10,6 +10,7 @@ export function MenuSwiper({
   modeClass,
   comebackNote,
   done,
+  timeEase,
   onStart,
 }: {
   menuOptions: Menu[]
@@ -17,6 +18,7 @@ export function MenuSwiper({
   modeClass: string
   comebackNote: string | null
   done: boolean
+  timeEase: number
   onStart: (kind: MenuKind, menuTitle: string) => void
 }) {
   const [index, setIndex] = useState(0)
@@ -92,7 +94,12 @@ export function MenuSwiper({
             )}
 
             <div className="menu-foot">
-              <span className="menu-minutes">めやす {m.minutes}分</span>
+              <span className="menu-minutes">
+                めやす {Math.max(1, Math.round(m.minutes * timeEase))}分
+                {timeEase < 1 && (
+                  <span className="menu-ease">ゆっくりでOK</span>
+                )}
+              </span>
               {done ? (
                 <span className="menu-done-mark">完了</span>
               ) : (

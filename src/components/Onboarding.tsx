@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Capacity, Gender, Goal, Profile } from '../state'
-import { IconArrowBack, IconLeaf } from './icons'
+import { IconArrowBack } from './icons'
 
 const GOALS: { key: Goal; label: string; sub: string }[] = [
   { key: 'diet', label: 'ダイエット', sub: '体を軽く・引き締める' },
@@ -68,9 +68,7 @@ export default function Onboarding({
   if (step === 0) {
     return (
       <div className="ob ob-welcome">
-        <div className="ob-logo">
-          <IconLeaf size={30} />
-        </div>
+        <img className="ob-logo" src="./icon.png" alt="" />
         <h1>ツヅキン</h1>
         <p className="ob-welcome-catch">
           止まらなくていい。
