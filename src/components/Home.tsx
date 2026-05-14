@@ -17,13 +17,11 @@ const MODE_TAG: Record<DailyMode, string | null> = {
 export default function Home({
   state,
   today,
-  onLog,
   onUnlog,
   onStart,
 }: {
   state: AppState
   today: string
-  onLog: (s: DayStatus) => void
   onUnlog: () => void
   onStart: (kind: 'full' | 'minimum', menuTitle: string) => void
 }) {
@@ -137,17 +135,7 @@ export default function Home({
             </div>
           </div>
 
-          <button
-            className="btn btn-ghost rest-btn reveal reveal-3"
-            onClick={() => {
-              onLog('rest')
-              setEditing(false)
-            }}
-          >
-            今日は計画的に休む
-          </button>
-
-          <p className="foot-note">
+          <p className="foot-note reveal reveal-3">
             「開始」を押すと下でタイマーが動き、終了すると自動で記録されます。
           </p>
         </>

@@ -6,7 +6,6 @@ import {
   setRecord,
   todayStr,
   type AppState,
-  type DayStatus,
   type Profile,
 } from './state'
 import Onboarding from './components/Onboarding'
@@ -36,8 +35,6 @@ export default function App() {
     )
   }
 
-  const log = (status: DayStatus) =>
-    setState((s) => ({ ...s, records: setRecord(s.records, today, status) }))
   const unlog = () =>
     setState((s) => ({ ...s, records: clearRecord(s.records, today) }))
 
@@ -74,7 +71,6 @@ export default function App() {
         <Home
           state={state}
           today={today}
-          onLog={log}
           onUnlog={unlog}
           onStart={startTimer}
         />
