@@ -33,16 +33,28 @@ export type RunningTimer = {
   startedAt: number // epoch ms
 }
 
+// 通知設定
+export type NotifySettings = {
+  enabled: boolean
+  time: string // 'HH:MM'（24時間表記）
+}
+
+export const DEFAULT_NOTIFY: NotifySettings = {
+  enabled: false,
+  time: '20:00',
+}
+
 export type AppState = {
   version: number
   profile: Profile | null
   records: DayRecord[] // date昇順を保つ
   createdAt: string // YYYY-MM-DD
   timer: RunningTimer | null
+  notify: NotifySettings
 }
 
 const STORAGE_KEY = 'keepon.state.v1'
-export const STATE_VERSION = 3
+export const STATE_VERSION = 4
 
 // ---- 日付ユーティリティ（端末ローカル日付ベース） ----
 
@@ -145,6 +157,7 @@ export function loadState(): AppState {
           records: normalizeRecords(parsed.records),
           createdAt: parsed.createdAt ?? todayStr(),
           timer: parsed.timer ?? null,
+          notify: normalizeNotify(parsed.notify),
         }
       }
     }
@@ -157,7 +170,19 @@ export function loadState(): AppState {
     records: [],
     createdAt: todayStr(),
     timer: null,
+    notify: { ...DEFAULT_NOTIFY },
   }
+}
+
+function normalizeNotify(raw: unknown): NotifySettings {
+  if (!raw || typeof raw !== 'object') return { ...DEFAULT_NOTIFY }
+  const r = raw as Record<string, unknown>
+  const enabled = r.enabled === true
+  const time =
+    typeof r.time === 'string' && /^\d{2}:\d{2}$/.test(r.time)
+      ? r.time
+      : DEFAULT_NOTIFY.time
+  return { enabled, time }
 }
 
 export function saveState(state: AppState): void {
@@ -221,6 +246,7 @@ export function parseBackup(json: string): AppState | null {
     records: normalizeRecords(p.records),
     createdAt: typeof p.createdAt === 'string' ? p.createdAt : todayStr(),
     timer: null,
+    notify: normalizeNotify(p.notify),
   }
 }
 

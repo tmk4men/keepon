@@ -1922,6 +1922,52 @@ button.cal-cell:active {
   background: var(--warn);
 }
 
+/* ---------- 通知 ---------- */
+.notify-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+}
+.notify-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  cursor: pointer;
+}
+.notify-toggle input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--accent);
+}
+.notify-time-label {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 700;
+}
+.notify-time {
+  font-family: inherit;
+  font-size: 15px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+}
+.notify-time:disabled {
+  opacity: 0.5;
+}
+.notify-actions {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
 /* ---------- データのバックアップ ---------- */
 .settings-note {
   font-size: 12px;

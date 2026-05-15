@@ -7,9 +7,16 @@ import {
   type Capacity,
   type Gender,
   type Goal,
+  type NotifySettings,
   type Profile,
 } from '../state'
 import { bmiInfo } from '../logic'
+import {
+  currentPermission,
+  isNotifySupported,
+  requestPermission,
+  showNotification,
+} from '../notify'
 import { IconClose } from './icons'
 
 const GOALS: { key: Goal; label: string; sub: string }[] = [
@@ -33,12 +40,16 @@ const FREQ = [2, 3, 4, 5]
 
 export default function Settings({
   profile,
+  notify,
   onSave,
+  onNotifyChange,
   onReplaceState,
   onClose,
 }: {
   profile: Profile
+  notify: NotifySettings
   onSave: (p: Profile) => void
+  onNotifyChange: (n: NotifySettings) => void
   onReplaceState: (s: AppState) => void
   onClose: () => void
 }) {
@@ -53,6 +64,11 @@ export default function Settings({
   const [dataMsg, setDataMsg] = useState<{ ok: boolean; text: string } | null>(
     null,
   )
+  const [perm, setPerm] = useState<NotificationPermission>(() =>
+    currentPermission(),
+  )
+  const [notifyMsg, setNotifyMsg] = useState<string | null>(null)
+  const supported = isNotifySupported()
 
   const valid = age !== '' && height !== '' && weight !== ''
   const bmi = bmiInfo(Number(height), Number(weight))
@@ -223,6 +239,91 @@ export default function Settings({
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="settings-section">
+          <h3 className="settings-q">通知</h3>
+          {!supported ? (
+            <p className="settings-note">
+              このブラウザは通知に対応していません。
+            </p>
+          ) : (
+            <>
+              <div className="notify-row">
+                <label className="notify-toggle">
+                  <input
+                    type="checkbox"
+                    checked={notify.enabled}
+                    onChange={async (e) => {
+                      const next = e.target.checked
+                      if (next && currentPermission() !== 'granted') {
+                        const p = await requestPermission()
+                        setPerm(p)
+                        if (p !== 'granted') {
+                          setNotifyMsg(
+                            '通知の許可が下りませんでした。ブラウザの設定で許可してください。',
+                          )
+                          return
+                        }
+                      }
+                      setNotifyMsg(null)
+                      onNotifyChange({ ...notify, enabled: next })
+                    }}
+                  />
+                  <span>毎日リマインドする</span>
+                </label>
+              </div>
+              <div className="notify-row">
+                <label className="notify-time-label" htmlFor="notify-time">
+                  通知時刻
+                </label>
+                <input
+                  id="notify-time"
+                  className="notify-time"
+                  type="time"
+                  value={notify.time}
+                  onChange={(e) =>
+                    onNotifyChange({ ...notify, time: e.target.value })
+                  }
+                  disabled={!notify.enabled}
+                />
+              </div>
+              <div className="notify-actions">
+                <button
+                  type="button"
+                  className="data-btn"
+                  onClick={async () => {
+                    if (currentPermission() !== 'granted') {
+                      const p = await requestPermission()
+                      setPerm(p)
+                      if (p !== 'granted') {
+                        setNotifyMsg('通知が許可されていません。')
+                        return
+                      }
+                    }
+                    await showNotification(
+                      'ツヅキン（テスト通知）',
+                      'この見え方で毎日届きます。',
+                    )
+                    setNotifyMsg('テスト通知を送りました。')
+                  }}
+                >
+                  テスト通知を送る
+                </button>
+              </div>
+              <p className="settings-note">
+                通知はアプリを開いている間に予約されます。ブラウザを完全に閉じている間は
+                届かないことがあります（端末の通知設定が「許可」になっているかも、
+                あわせてご確認ください）。
+              </p>
+              {perm === 'denied' && (
+                <p className="data-msg err">
+                  ブラウザの通知がブロックされています。サイトの設定から許可してください。
+                </p>
+              )}
+              {notifyMsg && <p className="data-msg ok">{notifyMsg}</p>}
+            </>
+          )}
         </section>
 
         <section className="settings-section">
