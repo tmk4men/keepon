@@ -45,12 +45,10 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* 縦のラバーバンド／プルtoリフレッシュだけ抑止する。
+   height/overflow/touch-action は触らない（ヘッダー位置やタップ判定に影響するため）。 */
 body.no-scroll {
-  overflow: hidden;
-  height: 100vh;
-  height: 100dvh;
-  overscroll-behavior: none;
-  touch-action: pan-x;
+  overscroll-behavior-y: none;
 }
 
 #root {
