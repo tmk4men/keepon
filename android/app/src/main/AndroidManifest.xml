@@ -33,6 +33,28 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths"></meta-data>
         </provider>
+
+        <!-- ホーム画面ウィジェット本体 -->
+        <receiver
+            android:name=".KeeponWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_keepon_info" />
+        </receiver>
+
+        <!-- ウィジェット内ボタンのタップを受けるレシーバ -->
+        <receiver
+            android:name=".WidgetActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="app.tuzukin.diet.WIDGET_START" />
+                <action android:name="app.tuzukin.diet.WIDGET_STOP" />
+            </intent-filter>
+        </receiver>
     </application>
 
     <!-- Permissions -->

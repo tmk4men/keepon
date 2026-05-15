@@ -26,7 +26,8 @@ import {
   scheduleDailyNative,
   showNotification,
 } from './notify'
-import { computeMetrics } from './logic'
+import { buildDailyPlan, computeMetrics } from './logic'
+import { pullPendingRecords, syncWidgetState } from './widgetBridge'
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
@@ -37,6 +38,36 @@ export default function App() {
   useEffect(() => {
     saveState(state)
   }, [state])
+
+  // 起動時：ウィジェットで「完了」されてたまっている記録を取り込む
+  useEffect(() => {
+    if (!isNative()) return
+    pullPendingRecords().then((pending) => {
+      if (pending.length === 0) return
+      setState((s) => {
+        let nextRecords = s.records
+        for (const p of pending) {
+          nextRecords = markDone(nextRecords, p.date, p.kind, p.menuTitle, p.minutes)
+        }
+        return { ...s, records: nextRecords }
+      })
+    })
+  }, [])
+
+  // 状態が変わるたびにウィジェットへ反映
+  useEffect(() => {
+    if (!state.profile) return
+    if (!isNative()) return
+    const plan = buildDailyPlan(state, today)
+    const todayRec = state.records.find((r) => r.date === today)
+    const fullDone = todayRec?.full === true
+    syncWidgetState({
+      todayMenu: plan.menuOptions[0]?.title ?? null,
+      fullDone,
+      timerRunning: !!state.timer,
+      timerStartedAt: state.timer?.startedAt ?? 0,
+    })
+  }, [state, today])
 
   useEffect(() => {
     const lock = tab === 'today' || tab === 'records'

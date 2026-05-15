@@ -12,3 +12,4 @@ dist-ssr
 
 # 素材の作業フォルダ（public/ に配置したものを使う）
 画像/
+android/.idea/
