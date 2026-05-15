@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "app.tsuzukin.keepon"
+    namespace = "app.tuzukin.diet"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.tsuzukin.keepon"
+        applicationId "app.tuzukin.diet"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

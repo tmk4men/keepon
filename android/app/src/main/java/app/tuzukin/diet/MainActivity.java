@@ -1,4 +1,4 @@
-package app.tsuzukin.keepon;
+package app.tuzukin.diet;
 
 import com.getcapacitor.BridgeActivity;
 
