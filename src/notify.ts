@@ -96,7 +96,9 @@ export async function showNotification(
             title,
             body,
             schedule: { at: new Date(Date.now() + 1000) },
-            smallIcon: 'ic_stat_icon_config_sample',
+            smallIcon: 'ic_stat_notify',
+            largeIcon: 'ic_notify_large',
+            iconColor: '#3f7d6e',
           },
         ],
       })
@@ -150,7 +152,9 @@ export async function scheduleDailyNative(
             on: { hour, minute },
             allowWhileIdle: true,
           },
-          smallIcon: 'ic_stat_icon_config_sample',
+          smallIcon: 'ic_stat_notify',
+          largeIcon: 'ic_notify_large',
+          iconColor: '#3f7d6e',
         },
       ],
     })
