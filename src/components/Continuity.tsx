@@ -69,19 +69,16 @@ export default function Continuity({
       <div className="card metrics-card reveal-2">
         <Metric
           name="復帰率"
-          desc="空白に入ったあと、戻ってこれた割合"
           value={`${Math.round(m.comebackRate * 100)}`}
           unit="%"
         />
         <Metric
           name="戻る速度"
-          desc="空白から戻るまでにかかった平均日数"
           value={m.avgComebackDays > 0 ? m.avgComebackDays.toFixed(1) : 'ー'}
           unit={m.avgComebackDays > 0 ? '日' : ''}
         />
         <Metric
           name="挫折の回数"
-          desc="数日空いてしまったことがある回数（戻ればOK）"
           value={`${m.setbackCount}`}
           unit="回"
         />
@@ -92,7 +89,6 @@ export default function Continuity({
         <Metric name="動けた日" value={`${m.totalActive}`} unit="日" />
         <Metric
           name="最長だった空白"
-          desc="これだけ空いても、ここまで戻ってこれた"
           value={`${m.longestGap}`}
           unit="日"
         />
@@ -105,7 +101,7 @@ export default function Continuity({
 function CoachBubble({ line }: { line: CoachLine }) {
   return (
     <div className="coach">
-      <img className="coach-ico" src={`./coach${line.icon}.png`} alt="" />
+      <img className="coach-ico" src={`./coach${line.icon}.webp`} alt="" />
       <div className={`coach-bubble${line.excited ? ' excited' : ''}`}>
         {line.text}
       </div>

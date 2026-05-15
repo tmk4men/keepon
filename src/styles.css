@@ -45,6 +45,14 @@ body {
   letter-spacing: 0.01em;
 }
 
+body.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  overscroll-behavior: none;
+  touch-action: pan-x;
+}
+
 #root {
   max-width: 480px;
   margin: 0 auto;

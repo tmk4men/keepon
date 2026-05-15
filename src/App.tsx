@@ -27,6 +27,12 @@ export default function App() {
     saveState(state)
   }, [state])
 
+  useEffect(() => {
+    const lock = tab === 'today' || tab === 'records'
+    document.body.classList.toggle('no-scroll', lock)
+    return () => document.body.classList.remove('no-scroll')
+  }, [tab])
+
   if (!state.profile) {
     return (
       <Onboarding
@@ -72,7 +78,7 @@ export default function App() {
     <div className={`app${state.timer ? ' has-timer' : ''}`}>
       <header className="app-header">
         <div className="brand">
-          <img className="brand-mark" src="./icon.png" alt="" />
+          <img className="brand-mark" src="./icon.webp" alt="" />
           <span className="brand-name">ツヅキン</span>
         </div>
         <div className="tagline">止まっても戻れるボディメイク</div>

@@ -68,7 +68,7 @@ export default function Onboarding({
   if (step === 0) {
     return (
       <div className="ob ob-welcome">
-        <img className="ob-logo" src="./icon.png" alt="" />
+        <img className="ob-logo" src="./icon.webp" alt="" />
         <h1>ツヅキン</h1>
         <p className="ob-welcome-catch">
           止まらなくていい。
