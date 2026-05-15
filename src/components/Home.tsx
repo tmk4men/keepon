@@ -76,6 +76,7 @@ export default function Home({
             />
           </div>
 
+          {plan.bmiNote && <p className="age-note reveal">{plan.bmiNote}</p>}
           {plan.ageNote && <p className="age-note reveal">{plan.ageNote}</p>}
 
           {/* 最低ライン */}
@@ -112,8 +113,6 @@ export default function Home({
 
           <p className="foot-note reveal reveal-3">
             メニューと最低ラインは、両方やってもOK。
-            <br />
-            「開始」を押すと下でタイマーが動き、終了すると自動で記録されます。
           </p>
         </>
       )}
@@ -172,7 +171,7 @@ function DoneBanner({
   if (full && minimum) {
     sub = 'メニューと最低ライン、両方やった。すごい。'
   } else if (full) {
-    sub = 'メニュー完了。おつかれさま。'
+    sub = 'メニュー完了。お疲れさま！'
   } else {
     sub = '最低ライン達成。ゼロを作らなかった。'
   }

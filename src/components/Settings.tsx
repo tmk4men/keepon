@@ -1,5 +1,15 @@
-import { useState } from 'react'
-import type { Capacity, Gender, Goal, Profile } from '../state'
+import { useRef, useState } from 'react'
+import {
+  exportState,
+  parseBackup,
+  todayStr,
+  type AppState,
+  type Capacity,
+  type Gender,
+  type Goal,
+  type Profile,
+} from '../state'
+import { bmiInfo } from '../logic'
 import { IconClose } from './icons'
 
 const GOALS: { key: Goal; label: string; sub: string }[] = [
@@ -24,10 +34,12 @@ const FREQ = [2, 3, 4, 5]
 export default function Settings({
   profile,
   onSave,
+  onReplaceState,
   onClose,
 }: {
   profile: Profile
   onSave: (p: Profile) => void
+  onReplaceState: (s: AppState) => void
   onClose: () => void
 }) {
   const [goal, setGoal] = useState<Goal>(profile.goal)
@@ -37,8 +49,57 @@ export default function Settings({
   const [weight, setWeight] = useState(String(profile.weight))
   const [capacity, setCapacity] = useState<Capacity>(profile.capacity)
   const [frequency, setFrequency] = useState<number>(profile.frequency)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [dataMsg, setDataMsg] = useState<{ ok: boolean; text: string } | null>(
+    null,
+  )
 
   const valid = age !== '' && height !== '' && weight !== ''
+  const bmi = bmiInfo(Number(height), Number(weight))
+
+  const handleExport = () => {
+    try {
+      const blob = new Blob([exportState()], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `tsuzukin-backup-${todayStr()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      setDataMsg({ ok: true, text: 'バックアップを書き出しました。' })
+    } catch {
+      setDataMsg({ ok: false, text: '書き出しに失敗しました。' })
+    }
+  }
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const next = parseBackup(String(reader.result))
+      if (!next) {
+        setDataMsg({
+          ok: false,
+          text: 'このファイルはツヅキンのバックアップとして読み込めませんでした。',
+        })
+        return
+      }
+      if (
+        !window.confirm(
+          '今の記録を、読み込んだバックアップで置きかえます。よろしいですか？',
+        )
+      ) {
+        return
+      }
+      onReplaceState(next)
+      onClose()
+    }
+    reader.onerror = () =>
+      setDataMsg({ ok: false, text: 'ファイルを読み込めませんでした。' })
+    reader.readAsText(file)
+  }
 
   const save = () => {
     onSave({
@@ -116,6 +177,21 @@ export default function Settings({
               onChange={setWeight}
             />
           </div>
+          <div className={`bmi-row${bmi ? ` bmi-${bmi.category}` : ''}`}>
+            <span className="bmi-label">BMI</span>
+            {bmi ? (
+              <span className="bmi-value">
+                {bmi.value.toFixed(1)}
+                <span className="bmi-cat">{bmi.label}</span>
+              </span>
+            ) : (
+              <span className="bmi-value bmi-empty">身長・体重を入力</span>
+            )}
+          </div>
+          <p className="bmi-hint">
+            BMIは身長と体重から自動で計算されます。今日のメニューは、このBMIも
+            考慮して選ばれます（高めのときは、ひざ・腰にやさしい低負荷メニュー中心）。
+          </p>
         </section>
 
         <section className="settings-section">
@@ -147,6 +223,54 @@ export default function Settings({
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="settings-section">
+          <h3 className="settings-q">運動するときの注意</h3>
+          <ul className="caution-list">
+            <li>痛みや強い不調を感じたら、すぐに中止してください。</li>
+            <li>
+              持病・通院中の方、妊娠中の方は、医師に相談のうえ無理のない範囲で。
+            </li>
+            <li>
+              メニューは一般的な目安です。体調に合わせて回数や強度を調整してOK。
+            </li>
+            <li>運動の前後に、水分補給と軽い準備運動・整理運動を。</li>
+          </ul>
+          <p className="settings-note">
+            このアプリは医療・治療を目的としたものではありません。
+          </p>
+        </section>
+
+        <section className="settings-section">
+          <h3 className="settings-q">データのバックアップ</h3>
+          <p className="settings-note">
+            記録は、この端末の中だけに保存されています。機種変更やブラウザの
+            履歴削除に備えて、ときどき書き出しておくと安心です。
+          </p>
+          <div className="data-actions">
+            <button className="data-btn" onClick={handleExport}>
+              バックアップを書き出す
+            </button>
+            <button
+              className="data-btn"
+              onClick={() => fileRef.current?.click()}
+            >
+              バックアップを読み込む
+            </button>
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json,.json"
+            className="data-file"
+            onChange={handleImport}
+          />
+          {dataMsg && (
+            <p className={`data-msg ${dataMsg.ok ? 'ok' : 'err'}`}>
+              {dataMsg.text}
+            </p>
+          )}
         </section>
 
         <button

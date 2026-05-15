@@ -45,12 +45,14 @@ export default function App() {
 
   const finishTimer = () => {
     if (!state.timer) return
-    const { kind, menuTitle } = state.timer
+    const { kind, menuTitle, startedAt } = state.timer
+    const minutes = Math.max(1, Math.round((Date.now() - startedAt) / 60000))
+    navigator.vibrate?.([12, 30, 18]) // 記録できた合図（対応端末のみ）
     setState((s) =>
       s.timer
         ? {
             ...s,
-            records: markDone(s.records, today, kind, menuTitle),
+            records: markDone(s.records, today, kind, menuTitle, minutes),
             timer: null,
           }
         : s,
@@ -60,6 +62,11 @@ export default function App() {
   }
 
   const cancelTimer = () => setState((s) => ({ ...s, timer: null }))
+
+  const changeTab = (t: TabKey) => {
+    setTab(t)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   return (
     <div className={`app${state.timer ? ' has-timer' : ''}`}>
@@ -91,12 +98,13 @@ export default function App() {
           onCancel={cancelTimer}
         />
       )}
-      <TabBar tab={tab} onChange={setTab} />
+      <TabBar tab={tab} onChange={changeTab} />
 
       {settingsOpen && (
         <Settings
           profile={state.profile}
           onSave={(profile) => setState((s) => ({ ...s, profile }))}
+          onReplaceState={(next) => setState(next)}
           onClose={() => setSettingsOpen(false)}
         />
       )}

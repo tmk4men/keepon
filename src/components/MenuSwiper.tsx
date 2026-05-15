@@ -30,15 +30,16 @@ export function MenuSwiper({
   const count = menuOptions.length
   const clampedIndex = Math.min(index, count - 1)
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX
-    startY.current = e.touches[0].clientY
+  // タッチ・マウス共通のドラッグ処理（マウス対応でWeb版も指で送れる感覚に）
+  const begin = (x: number, y: number) => {
+    startX.current = x
+    startY.current = y
     dragging.current = true
   }
-  const onTouchMove = (e: React.TouchEvent) => {
+  const move = (x: number, y: number) => {
     if (!dragging.current) return
-    const dx = e.touches[0].clientX - startX.current
-    const dy = e.touches[0].clientY - startY.current
+    const dx = x - startX.current
+    const dy = y - startY.current
     if (Math.abs(dx) < Math.abs(dy)) return // 縦スクロール優先
     // 端では引っぱり抵抗をかける
     let eff = dx
@@ -47,7 +48,8 @@ export function MenuSwiper({
     }
     setDrag(eff)
   }
-  const onTouchEnd = () => {
+  const end = () => {
+    if (!dragging.current) return
     dragging.current = false
     const threshold = 46
     if (drag < -threshold && clampedIndex < count - 1) {
@@ -68,9 +70,13 @@ export function MenuSwiper({
       <div
         className="menu-track"
         style={trackStyle}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
+        onTouchStart={(e) => begin(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchMove={(e) => move(e.touches[0].clientX, e.touches[0].clientY)}
+        onTouchEnd={end}
+        onMouseDown={(e) => begin(e.clientX, e.clientY)}
+        onMouseMove={(e) => move(e.clientX, e.clientY)}
+        onMouseUp={end}
+        onMouseLeave={end}
       >
         {menuOptions.map((m, i) => (
           <div className="menu-slide" key={i}>

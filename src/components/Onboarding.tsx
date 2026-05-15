@@ -236,7 +236,7 @@ export default function Onboarding({
       )}
 
       {step === 5 && (
-        <Step num={5} q="準備ができました" canNext onNext={finish} nextLabel="はじめる" isLast>
+        <Step num={5} q="準備ができました" canNext onNext={finish} nextLabel="はじめる">
           <div className="ob-summary">
             <SummaryRow label="目的" value={GOALS.find((g) => g.key === goal)?.label ?? ''} />
             <SummaryRow
@@ -265,7 +265,6 @@ function Step({
   canNext,
   onNext,
   nextLabel = '次へ',
-  isLast = false,
 }: {
   num: number
   q: string
@@ -273,7 +272,6 @@ function Step({
   canNext: boolean
   onNext: () => void
   nextLabel?: string
-  isLast?: boolean
 }) {
   return (
     <div className="ob-step">
@@ -281,7 +279,7 @@ function Step({
       <h2 className="ob-q">{q}</h2>
       {children}
       <button
-        className={`btn ${isLast ? 'btn-primary' : 'btn-primary'}`}
+        className="btn btn-primary"
         disabled={!canNext}
         onClick={onNext}
         style={{ marginTop: 24 }}

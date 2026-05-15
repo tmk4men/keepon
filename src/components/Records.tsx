@@ -94,7 +94,6 @@ export default function Records({
   return (
     <div className="screen">
       <h2 className="screen-title">きろく</h2>
-      <p className="screen-sub">動けた日に、スタンプがたまっていきます。</p>
 
       <div className="card stamp-card-sheet">
         <div className="cal-head">

@@ -23,6 +23,7 @@ export type DayRecord = {
   minimum: boolean // 最低ラインを実施した
   fullMenu: string | null // 実施したメニュー名
   minimumMenu: string | null // 実施した最低ラインの内容
+  minutes: number // その日に動いた合計時間（分）
 }
 
 // 進行中のカウントアップタイマー（終了すると kind が記録される）
@@ -41,7 +42,7 @@ export type AppState = {
 }
 
 const STORAGE_KEY = 'keepon.state.v1'
-export const STATE_VERSION = 2
+export const STATE_VERSION = 3
 
 // ---- 日付ユーティリティ（端末ローカル日付ベース） ----
 
@@ -92,12 +93,15 @@ function normalizeRecords(raw: unknown): DayRecord[] {
     let minimum = false
     let fullMenu: string | null = null
     let minimumMenu: string | null = null
+    let minutes = 0
     if (typeof rec.full === 'boolean' || typeof rec.minimum === 'boolean') {
       full = rec.full === true
       minimum = rec.minimum === true
       fullMenu = typeof rec.fullMenu === 'string' ? rec.fullMenu : null
       minimumMenu =
         typeof rec.minimumMenu === 'string' ? rec.minimumMenu : null
+      minutes =
+        typeof rec.minutes === 'number' && rec.minutes > 0 ? rec.minutes : 0
     } else if (rec.status === 'full') {
       full = true
     } else if (rec.status === 'minimum') {
@@ -112,8 +116,16 @@ function normalizeRecords(raw: unknown): DayRecord[] {
       existing.minimum = existing.minimum || minimum
       existing.fullMenu = existing.fullMenu ?? fullMenu
       existing.minimumMenu = existing.minimumMenu ?? minimumMenu
+      existing.minutes += minutes
     } else {
-      merged.set(rec.date, { date: rec.date, full, minimum, fullMenu, minimumMenu })
+      merged.set(rec.date, {
+        date: rec.date,
+        full,
+        minimum,
+        fullMenu,
+        minimumMenu,
+        minutes,
+      })
     }
   }
   return [...merged.values()].sort((a, b) => (a.date < b.date ? -1 : 1))
@@ -169,12 +181,56 @@ export function isActiveRecord(r: DayRecord | undefined): boolean {
   return !!r && (r.full || r.minimum)
 }
 
+// ---- バックアップ（書き出し / 読み込み） ----
+
+function isValidProfile(p: unknown): p is Profile {
+  if (!p || typeof p !== 'object') return false
+  const o = p as Record<string, unknown>
+  return (
+    (o.goal === 'diet' || o.goal === 'bulk') &&
+    (o.gender === 'male' || o.gender === 'female' || o.gender === 'other') &&
+    (o.capacity === 'low' || o.capacity === 'mid' || o.capacity === 'high') &&
+    typeof o.height === 'number' &&
+    typeof o.weight === 'number' &&
+    typeof o.age === 'number' &&
+    typeof o.frequency === 'number'
+  )
+}
+
+// 現在の状態を、バックアップ用のJSON文字列にする
+export function exportState(): string {
+  return JSON.stringify(loadState(), null, 2)
+}
+
+// バックアップJSONを解釈して状態にする（保存はしない）。
+// ツヅキンのバックアップとして読めなければ null。
+export function parseBackup(json: string): AppState | null {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(json)
+  } catch {
+    return null
+  }
+  if (!parsed || typeof parsed !== 'object') return null
+  const p = parsed as Partial<AppState>
+  // 最低限「記録の配列」か「正しいプロフィール」のどちらかを持つこと
+  if (!Array.isArray(p.records) && !isValidProfile(p.profile)) return null
+  return {
+    version: STATE_VERSION,
+    profile: isValidProfile(p.profile) ? p.profile : null,
+    records: normalizeRecords(p.records),
+    createdAt: typeof p.createdAt === 'string' ? p.createdAt : todayStr(),
+    timer: null,
+  }
+}
+
 // 指定日の指定種別を「実施済み」にする（もう片方の状態は維持）
 export function markDone(
   records: DayRecord[],
   date: string,
   kind: MenuKind,
   menuTitle: string,
+  minutes: number,
 ): DayRecord[] {
   const existing = recordOn(records, date)
   const next = records.filter((r) => r.date !== date)
@@ -185,6 +241,7 @@ export function markDone(
     fullMenu: kind === 'full' ? menuTitle : (existing?.fullMenu ?? null),
     minimumMenu:
       kind === 'minimum' ? menuTitle : (existing?.minimumMenu ?? null),
+    minutes: (existing?.minutes ?? 0) + Math.max(0, minutes),
   })
   next.sort((a, b) => (a.date < b.date ? -1 : 1))
   return next

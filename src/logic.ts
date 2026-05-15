@@ -25,6 +25,7 @@ export type DailyPlan = {
   gapDays: number // 最後に動いた日からの日数
   comebackNote: string | null // 復帰モード時の心理復帰メッセージ
   ageNote: string | null // 年代に合わせた注意メッセージ
+  bmiNote: string | null // BMIに合わせた注意メッセージ
   timeEase: number // めやす時間の倍率（1=通常、<1=復帰中で緩め）
 }
 
@@ -78,6 +79,73 @@ function adjustCapacityForAge(cap: Capacity, age: number): Capacity {
   return order[i]
 }
 
+// ---- BMI ----
+
+export type BmiCategory = 'low' | 'normal' | 'high' | 'veryHigh'
+
+export type BmiInfo = {
+  value: number // 小数1桁
+  category: BmiCategory
+  label: string // 穏やかな表現
+}
+
+// 身長(cm)・体重(kg)からBMIを算出。値が不正なら null。
+export function bmiInfo(height: number, weight: number): BmiInfo | null {
+  if (!Number.isFinite(height) || !Number.isFinite(weight)) return null
+  if (height <= 0 || weight <= 0) return null
+  const m = height / 100
+  const raw = weight / (m * m)
+  if (!Number.isFinite(raw)) return null
+  const value = Math.round(raw * 10) / 10
+  let category: BmiCategory
+  let label: string
+  if (raw < 18.5) {
+    category = 'low'
+    label = '低め'
+  } else if (raw < 25) {
+    category = 'normal'
+    label = '標準の範囲'
+  } else if (raw < 30) {
+    category = 'high'
+    label = 'やや高め'
+  } else {
+    category = 'veryHigh'
+    label = '高め'
+  }
+  return { value, category, label }
+}
+
+// BMIが高めのときは、関節への負担を減らすため実効運動量を1段やさしくする
+function adjustCapacityForBmi(cap: Capacity, bmi: BmiInfo | null): Capacity {
+  if (!bmi || (bmi.category !== 'high' && bmi.category !== 'veryHigh')) {
+    return cap
+  }
+  const order: Capacity[] = ['low', 'mid', 'high']
+  return order[Math.max(0, order.indexOf(cap) - 1)]
+}
+
+// BMIが「関節にやさしい低負荷メニュー」を出すべき状態か
+function needsJointCare(bmi: BmiInfo | null): boolean {
+  return !!bmi && (bmi.category === 'high' || bmi.category === 'veryHigh')
+}
+
+function bmiNote(bmi: BmiInfo | null, goal: AppState['profile']): string | null {
+  if (!bmi) return null
+  const isBulk = goal?.goal === 'bulk'
+  if (bmi.category === 'veryHigh') {
+    return 'ジャンプや走り込みはひざ・腰の負担になりやすい時期。今は低負荷メニュー中心で、痛みが出たら最低ラインへ。'
+  }
+  if (bmi.category === 'high') {
+    return 'ひざ・腰にやさしい低負荷メニューを中心にしています。無理なく、続けることを優先で。'
+  }
+  if (bmi.category === 'low') {
+    return isBulk
+      ? '体重は軽めです。トレーニング後の食事・たんぱく質をしっかりとると、体づくりが進みやすくなります。'
+      : '体重は軽めです。減量より、今の体を保ちながら筋力をつけることを優先しても大丈夫。'
+  }
+  return null
+}
+
 function ageNote(age: number): string | null {
   if (age >= 60) {
     return '準備運動を長めに。痛みや強い疲れを感じたら、無理せず最低ラインに切り替えてOK。'
@@ -120,7 +188,11 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
   const mode: DailyMode = ramp ? gentler(gapMode, ramp) : gapMode
 
   const minimum = pickMinimumMenu(dayIndex)
-  const effCapacity = adjustCapacityForAge(profile.capacity, profile.age)
+  const bmi = bmiInfo(profile.height, profile.weight)
+  const effCapacity = adjustCapacityForBmi(
+    adjustCapacityForAge(profile.capacity, profile.age),
+    bmi,
+  )
 
   let menuOptions: Menu[]
   if (mode === 'normal') {
@@ -130,6 +202,7 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
       profile.gender,
       profile.frequency,
       dayIndex,
+      needsJointCare(bmi),
     )
   } else if (mode === 'light') {
     menuOptions = pickLightMenus(profile.goal, dayIndex)
@@ -148,6 +221,7 @@ export function buildDailyPlan(state: AppState, today: string): DailyPlan {
     gapDays,
     comebackNote: buildNote(mode, gapDays),
     ageNote: ageNote(profile.age),
+    bmiNote: bmiNote(bmi, profile),
     timeEase,
   }
 }
@@ -307,7 +381,7 @@ function buildOutlook(
     return {
       level: 'new',
       label: 'これから作っていく',
-      text: '今日の一歩が、戻る力の最初の記録になる。',
+      text: '今日の一歩が、\n戻る力の最初の記録になる。',
     }
   }
   if (resilience >= 70) {
@@ -316,21 +390,21 @@ function buildOutlook(
       label: 'とても戻りやすい',
       text:
         currentGap > 0
-          ? '少し空いてるけど、あなたは戻れる人。今日それを証明しよう。'
-          : 'いいリズム。もし止まっても、ここまでの自分が戻してくれる。',
+          ? '少し空いてるけど、あなたは戻れる人。\n今日それを証明しよう。'
+          : 'いいリズム。もし止まっても、\nここまでの自分が戻してくれる。',
     }
   }
   if (resilience >= 45) {
     return {
       level: 'mid',
       label: '戻れる力がある',
-      text: '完璧じゃなくていい。戻ってきた回数が、あなたの強さ。',
+      text: '完璧じゃなくていい。\n戻ってきた回数が、あなたの強さ。',
     }
   }
   return {
     level: 'low',
     label: '今は戻る練習中',
-    text: '止まるのは失敗じゃない。今日、最低ラインだけでも戻ってみよう。',
+    text: '止まるのは失敗じゃない。\n今日、最低ラインだけでも戻ってみよう。',
   }
 }
 
@@ -359,4 +433,81 @@ export function weeklyProgress(state: AppState, today: string): WeeklyPace {
   }
   const target = state.profile?.frequency ?? 3
   return { done, target, met: done >= target }
+}
+
+// ---- コーチコメント（スコアカードの吹き出し） ----
+
+export type CoachLine = { text: string; excited: boolean; icon: number }
+
+// レベルごとのコメント候補。excited は「！」を使った力強い感激コメント。
+const COACH_LINES: Record<
+  RecoveryLevel,
+  { text: string; excited: boolean }[]
+> = {
+  new: [
+    { text: '今日の一歩が、\n戻る力の最初の記録になる。', excited: false },
+    { text: 'はじめましてっ！\nここから一緒に積んでいこう！', excited: true },
+  ],
+  low: [
+    {
+      text: '止まるのは失敗じゃない。\n今日、最低ラインだけでも戻ってみよう。',
+      excited: false,
+    },
+    {
+      text: '大丈夫、ここからだよ。\n小さく動けたら、それで合格！',
+      excited: true,
+    },
+  ],
+  mid: [
+    {
+      text: '完璧じゃなくていい。\n戻ってきた回数が、あなたの強さ。',
+      excited: false,
+    },
+    { text: 'いい感じ！\nそのリズム、キープしていこう！', excited: true },
+  ],
+  high: [
+    {
+      text: 'いいリズム。もし止まっても、\nここまでの自分が戻してくれる。',
+      excited: false,
+    },
+    { text: 'すごいっ！\nこの戻る力は、もう本物だよ！', excited: true },
+    {
+      text: '完璧すぎる！\nあなたはもう、止まっても怖くない人！',
+      excited: true,
+    },
+  ],
+}
+
+// 文字列から安定した擬似乱数の種を作る（同じ日なら毎レンダー同じ結果）
+function seedFrom(s: string): number {
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0
+  return Math.abs(h)
+}
+
+// その日のコーチコメントとアイコンを選ぶ（日付固定なので画面再描画でブレない）
+export function coachLine(level: RecoveryLevel, today: string): CoachLine {
+  const pool = COACH_LINES[level]
+  const seed = seedFrom(today)
+  const pick = pool[seed % pool.length]
+  return { text: pick.text, excited: pick.excited, icon: (seed % 4) + 1 }
+}
+
+// ---- 直近1週間の活動量（分） ----
+
+export type DayMinutes = { date: string; dow: number; minutes: number }
+
+// 今日を含む直近7日分の活動時間（分）を、古い順で返す。
+export function weeklyMinutes(state: AppState, today: string): DayMinutes[] {
+  const out: DayMinutes[] = []
+  for (let i = 6; i >= 0; i--) {
+    const date = addDays(today, -i)
+    const rec = recordOn(state.records, date)
+    out.push({
+      date,
+      dow: parseDate(date).getDay(),
+      minutes: rec?.minutes ?? 0,
+    })
+  }
+  return out
 }
