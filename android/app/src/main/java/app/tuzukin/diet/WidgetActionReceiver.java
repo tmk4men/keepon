@@ -20,6 +20,7 @@ public class WidgetActionReceiver extends BroadcastReceiver {
         switch (intent.getAction()) {
             case ACTION_START: {
                 if (!state.fullDone && !state.timerRunning) {
+                    state.date = WidgetState.todayStr();
                     state.timerRunning = true;
                     state.timerStartedAt = System.currentTimeMillis();
                     WidgetState.write(context, state);
@@ -39,6 +40,7 @@ public class WidgetActionReceiver extends BroadcastReceiver {
                             minutes
                     );
                     // 楽観的に「達成済み」を即反映（次のアプリ起動でも整合）
+                    state.date = WidgetState.todayStr();
                     state.timerRunning = false;
                     state.timerStartedAt = 0L;
                     state.fullDone = true;

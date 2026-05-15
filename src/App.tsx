@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   loadState,
   markDone,
@@ -33,7 +33,25 @@ export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [tab, setTab] = useState<TabKey>('today')
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const today = useMemo(() => todayStr(), [])
+  const [today, setToday] = useState<string>(() => todayStr())
+
+  // 真夜中を跨いだら today を更新する（アプリ起動時／日付変更時／可視化復帰時）
+  useEffect(() => {
+    const tick = () => {
+      const now = todayStr()
+      setToday((prev) => (prev === now ? prev : now))
+    }
+    tick()
+    const interval = window.setInterval(tick, 60 * 1000)
+    const onVis = () => {
+      if (document.visibilityState === 'visible') tick()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [])
 
   useEffect(() => {
     saveState(state)
@@ -62,6 +80,7 @@ export default function App() {
     const todayRec = state.records.find((r) => r.date === today)
     const fullDone = todayRec?.full === true
     syncWidgetState({
+      date: today,
       todayMenu: plan.menuOptions[0]?.title ?? null,
       fullDone,
       timerRunning: !!state.timer,

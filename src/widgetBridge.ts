@@ -16,6 +16,7 @@ const KEY_STATE = 'keepon_widget_state'
 const KEY_PENDING = 'keepon_widget_pending'
 
 export type WidgetSyncState = {
+  date: string // YYYY-MM-DD 当日の日付。日付が変わったらJava側で完了/タイマー状態をリセットする
   todayMenu: string | null
   fullDone: boolean
   timerRunning: boolean

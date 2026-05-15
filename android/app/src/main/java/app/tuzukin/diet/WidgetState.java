@@ -24,12 +24,14 @@ public class WidgetState {
     private static final String KEY_STATE = "keepon_widget_state";
     private static final String KEY_PENDING = "keepon_widget_pending";
 
+    public String date;          // この状態が「いつの日」のものかを示す YYYY-MM-DD
     public String todayMenu;
     public boolean fullDone;
     public boolean timerRunning;
     public long timerStartedAt;
 
     public WidgetState() {
+        this.date = null;
         this.todayMenu = null;
         this.fullDone = false;
         this.timerRunning = false;
@@ -46,11 +48,22 @@ public class WidgetState {
         if (raw == null || raw.isEmpty()) return s;
         try {
             JSONObject json = new JSONObject(raw);
+            s.date = json.isNull("date") ? null : json.optString("date", null);
             s.todayMenu = json.isNull("todayMenu") ? null : json.optString("todayMenu", null);
             s.fullDone = json.optBoolean("fullDone", false);
             s.timerRunning = json.optBoolean("timerRunning", false);
             s.timerStartedAt = json.optLong("timerStartedAt", 0L);
         } catch (JSONException ignored) {
+        }
+
+        // 日次リセット：保存されている日付が今日と違うなら、完了/タイマー状態をクリア。
+        // メニュー名は次回JSが上書きするまで残す（空表示よりはマシ）。
+        String currentDate = todayStr();
+        if (s.date != null && !currentDate.equals(s.date)) {
+            s.fullDone = false;
+            s.timerRunning = false;
+            s.timerStartedAt = 0L;
+            // 書き戻しは Receiver/Plugin の write 時に行う。read は副作用なし。
         }
         return s;
     }
@@ -58,6 +71,9 @@ public class WidgetState {
     public static void write(Context ctx, WidgetState s) {
         try {
             JSONObject json = new JSONObject();
+            // write 時点の date が未設定なら、今日の日付で補完する
+            String d = (s.date != null && !s.date.isEmpty()) ? s.date : todayStr();
+            json.put("date", d);
             if (s.todayMenu == null) json.put("todayMenu", JSONObject.NULL);
             else json.put("todayMenu", s.todayMenu);
             json.put("fullDone", s.fullDone);
