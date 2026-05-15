@@ -13,6 +13,7 @@ import {
 import { bmiInfo } from '../logic'
 import {
   currentPermission,
+  isNative,
   isNotifySupported,
   requestPermission,
   showNotification,
@@ -312,11 +313,11 @@ export default function Settings({
                 </button>
               </div>
               <p className="settings-note">
-                通知はアプリを開いている間に予約されます。ブラウザを完全に閉じている間は
-                届かないことがあります（端末の通知設定が「許可」になっているかも、
-                あわせてご確認ください）。
+                {isNative()
+                  ? '指定した時刻に毎日通知が届きます。届かないときは端末の通知設定でツヅキンが「許可」になっているかご確認ください。'
+                  : 'ブラウザ版では、アプリを開いている間に予約されます。完全に閉じている間は届かないことがあります。'}
               </p>
-              {perm === 'denied' && (
+              {!isNative() && perm === 'denied' && (
                 <p className="data-msg err">
                   ブラウザの通知がブロックされています。サイトの設定から許可してください。
                 </p>

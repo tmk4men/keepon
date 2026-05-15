@@ -17,10 +17,13 @@ import { TabBar, type TabKey } from './components/TabBar'
 import { TimerBar } from './components/TimerBar'
 import { IconMenu } from './components/icons'
 import {
+  cancelDailyNative,
   currentPermission,
   fireDailyIfDue,
+  isNative,
   nextFireAt,
   reminderCopy,
+  scheduleDailyNative,
   showNotification,
 } from './notify'
 import { computeMetrics } from './logic'
@@ -41,9 +44,21 @@ export default function App() {
     return () => document.body.classList.remove('no-scroll')
   }, [tab])
 
-  // 通知のスケジュール：アプリが開いている間、指定時刻で発火させる。
-  // アプリを開いた瞬間「予定時刻を過ぎていてまだ未実施」ならキャッチアップ通知。
+  // 通知のスケジュール
+  // ・ネイティブ：LocalNotifications で日次繰り返しを OS に登録（閉じてても届く）
+  // ・Web：アプリ起動中の setTimeout ＋ 起動時キャッチアップ
   useEffect(() => {
+    if (isNative()) {
+      if (state.notify.enabled) {
+        const metrics = computeMetrics(state, today)
+        const copy = reminderCopy(metrics.currentGap)
+        scheduleDailyNative(state.notify.time, copy.title, copy.body)
+      } else {
+        cancelDailyNative()
+      }
+      return
+    }
+
     if (!state.notify.enabled) return
     if (currentPermission() !== 'granted') return
 
@@ -52,15 +67,12 @@ export default function App() {
     const doneToday = !!todayRecord && (todayRecord.full || todayRecord.minimum)
     if (!doneToday) {
       const fire = nextFireAt(state.notify.time)
-      // nextFireAt は「次回」を返すので、今日分を過ぎていれば fire は明日になる。
-      // → 今日の予定時刻 = 明日のfire - 24h。それが既に過去ならキャッチアップ対象。
       const todayFire = fire - 24 * 60 * 60 * 1000
       if (Date.now() >= todayFire) {
         fireDailyIfDue(today)
       }
     }
 
-    // 次回の発火を予約
     let timerId: number | undefined
     const schedule = () => {
       const at = nextFireAt(state.notify.time)
@@ -69,7 +81,6 @@ export default function App() {
         const metrics = computeMetrics(state, today)
         const copy = reminderCopy(metrics.currentGap)
         await showNotification(copy.title, copy.body)
-        // 翌日分を再スケジュール
         schedule()
       }, Math.max(1000, delay))
     }

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ツヅキン</string>
+    <string name="title_activity_main">ツヅキン</string>
+    <string name="package_name">app.tsuzukin.keepon</string>
+    <string name="custom_url_scheme">app.tsuzukin.keepon</string>
+</resources>

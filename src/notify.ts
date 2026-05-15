@@ -1,11 +1,19 @@
 // 通知まわりのヘルパー
-// Webの制約：アプリ（タブ）が閉じている間は確実な配信ができない。
-// 開いている間は setTimeout で次回の時刻ぴったりに通知できる。
-// アプリを開き直したときに「予定時刻を過ぎていたら今日の分を出す」キャッチアップも担う。
+// ・ネイティブ（Capacitor）：LocalNotifications で日次繰り返しを予約。アプリを閉じていてもOSが配信
+// ・Web：Notification API + Service Worker。アプリ起動中は setTimeout、起動時にキャッチアップ
 
-const CATCHUP_KEY = 'keepon.notify.lastSent' // 'YYYY-MM-DD' 形式で最終発火日を記録
+import { Capacitor } from '@capacitor/core'
+import { LocalNotifications } from '@capacitor/local-notifications'
+
+const CATCHUP_KEY = 'keepon.notify.lastSent' // 'YYYY-MM-DD' Web版のキャッチアップ用
+const NATIVE_NOTIF_ID = 4321 // 日次通知の固定ID
+
+export function isNative(): boolean {
+  return Capacitor.isNativePlatform()
+}
 
 export function isNotifySupported(): boolean {
+  if (isNative()) return true
   return (
     typeof window !== 'undefined' &&
     'Notification' in window &&
@@ -14,11 +22,20 @@ export function isNotifySupported(): boolean {
 }
 
 export function currentPermission(): NotificationPermission {
-  if (!isNotifySupported()) return 'denied'
+  if (isNative()) return 'default' // ネイティブは別経路（requestPermission で確認）
+  if (typeof window === 'undefined' || !('Notification' in window)) {
+    return 'denied'
+  }
   return Notification.permission
 }
 
 export async function requestPermission(): Promise<NotificationPermission> {
+  if (isNative()) {
+    const res = await LocalNotifications.requestPermissions()
+    if (res.display === 'granted') return 'granted'
+    if (res.display === 'denied') return 'denied'
+    return 'default'
+  }
   if (!isNotifySupported()) return 'denied'
   if (Notification.permission !== 'default') return Notification.permission
   try {
@@ -28,27 +45,27 @@ export async function requestPermission(): Promise<NotificationPermission> {
   }
 }
 
-// 'HH:MM' を分に。失敗時は 1200(=20:00) を返す
-export function parseHM(hm: string): number {
+// 'HH:MM' を {hour, minute} に
+export function parseHM(hm: string): { hour: number; minute: number } {
   const m = /^(\d{2}):(\d{2})$/.exec(hm)
-  if (!m) return 20 * 60
-  const h = Math.min(23, Math.max(0, Number(m[1])))
-  const min = Math.min(59, Math.max(0, Number(m[2])))
-  return h * 60 + min
+  if (!m) return { hour: 20, minute: 0 }
+  return {
+    hour: Math.min(23, Math.max(0, Number(m[1]))),
+    minute: Math.min(59, Math.max(0, Number(m[2]))),
+  }
 }
 
-// 次に「HH:MM」が来る時刻（epoch ms）を返す
+// Web版：次に「HH:MM」が来る時刻（epoch ms）を返す
 export function nextFireAt(hm: string, now: Date = new Date()): number {
-  const minutes = parseHM(hm)
+  const { hour, minute } = parseHM(hm)
   const target = new Date(now)
-  target.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0)
+  target.setHours(hour, minute, 0, 0)
   if (target.getTime() <= now.getTime()) {
     target.setDate(target.getDate() + 1)
   }
   return target.getTime()
 }
 
-// 今日まだ通知を出していなければ true
 function notSentToday(today: string): boolean {
   try {
     return localStorage.getItem(CATCHUP_KEY) !== today
@@ -65,11 +82,29 @@ function markSent(today: string): void {
   }
 }
 
-// SW経由で通知を出す（SWが立ち上がっていれば閉じてもOSに残る）
+// 即時通知（テストやキャッチアップ用）
 export async function showNotification(
   title: string,
   body: string,
 ): Promise<void> {
+  if (isNative()) {
+    try {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: Math.floor(Math.random() * 1_000_000),
+            title,
+            body,
+            schedule: { at: new Date(Date.now() + 1000) },
+            smallIcon: 'ic_stat_icon_config_sample',
+          },
+        ],
+      })
+    } catch {
+      // 失敗は握りつぶし
+    }
+    return
+  }
   if (currentPermission() !== 'granted') return
   try {
     const reg = await navigator.serviceWorker.ready
@@ -81,17 +116,64 @@ export async function showNotification(
       renotify: true,
     } as NotificationOptions)
   } catch {
-    // フォールバック：直接 Notification を出す
     try {
       new Notification(title, { body, icon: './icon.webp' })
     } catch {
-      // それも失敗したら諦める
+      // ignore
     }
   }
 }
 
-// 「今日の通知をまだ出していなければ出す」
+// 日次の繰り返し通知を予約（ネイティブ専用）。既存予約は置きかえ。
+export async function scheduleDailyNative(
+  hm: string,
+  title: string,
+  body: string,
+): Promise<void> {
+  if (!isNative()) return
+  try {
+    await LocalNotifications.cancel({
+      notifications: [{ id: NATIVE_NOTIF_ID }],
+    })
+  } catch {
+    // ignore
+  }
+  const { hour, minute } = parseHM(hm)
+  try {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: NATIVE_NOTIF_ID,
+          title,
+          body,
+          schedule: {
+            on: { hour, minute },
+            allowWhileIdle: true,
+          },
+          smallIcon: 'ic_stat_icon_config_sample',
+        },
+      ],
+    })
+  } catch {
+    // ignore
+  }
+}
+
+// 日次の繰り返しを取り消し
+export async function cancelDailyNative(): Promise<void> {
+  if (!isNative()) return
+  try {
+    await LocalNotifications.cancel({
+      notifications: [{ id: NATIVE_NOTIF_ID }],
+    })
+  } catch {
+    // ignore
+  }
+}
+
+// 「今日の通知をまだ出していなければ出す」(Web版のキャッチアップ)
 export async function fireDailyIfDue(today: string): Promise<boolean> {
+  if (isNative()) return false // ネイティブは OS スケジューラに任せる
   if (!notSentToday(today)) return false
   await showNotification(
     'ツヅキンの時間',
