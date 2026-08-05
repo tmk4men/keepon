@@ -32,7 +32,8 @@ if [ -z "$APP_ID" ]; then
   exit 1
 fi
 
-echo "appId: $APP_ID（$BUNDLE_ID）"
+# 変数の直後に全角文字を置くと bash が変数名の一部として読むため、必ず ${} で囲む
+echo "appId: ${APP_ID}（${BUNDLE_ID}）"
 echo
 
 if [ "${1:-}" = "--yes" ]; then
