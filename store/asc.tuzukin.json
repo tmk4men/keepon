@@ -1,8 +1,9 @@
 {
   "_comment": "App Store Connect 投入用。appstore-connect スキルの asc-setup に渡す。秘密情報は入れない。",
-  "_howto": "1) ASCでアプリレコードを作る 2) asc apps で appId を確認して下に入れる 3) asc-setup store/asc.tuzukin.json（ドライラン）4) 内容を目で見てから --yes",
+  "_howto": "1) ASCでアプリレコードを作る 2) ./store/push-to-asc.sh（下見）3) 内容を目で見てから ./store/push-to-asc.sh --yes",
+  "_appId": "push-to-asc.sh が bundleId から自動で引くので、ここは空のままでよい",
 
-  "appId": "TODO_asc_apps_で確認",
+  "appId": "",
   "locale": "ja",
   "territory": "JPN",
   "category": "HEALTH_AND_FITNESS",

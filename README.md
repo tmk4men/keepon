@@ -71,13 +71,15 @@ Android では体験期間を端末内だけで管理します（`trial7` は登
 ### ストアへの登録
 
 App Store Connect 側は `store/asc.tuzukin.json` を使って `appstore-connect` スキルの CLI で流します。
-先に ASC でアプリレコードを作り、`asc apps` で出た appId とプライバシーポリシーのURLを書き入れてください。
+**先に ASC でアプリレコードを作ること**（appId はレコードを作らないと発行されません）。
+appId は bundleId から自動で引くので、手で写す必要はありません。
 
 ```bash
-asc apps                                  # appId を確認
-asc-setup store/asc.tuzukin.json          # ドライラン（何も送らない）
-asc-setup store/asc.tuzukin.json --yes    # 課金商品と掲載文を反映
+./store/push-to-asc.sh          # 下見（何も送らない）
+./store/push-to-asc.sh --yes    # 課金商品と掲載文を反映
 ```
+
+レコードを作る前に実行すると、そのアカウントに見えているアプリ一覧を出して止まります。
 
 Google Play 側は `app.tuzukin.diet.full` を1つ、アプリ内アイテム（1回限り）として ¥500 で作ります。
 `trial7` は登録しません。
