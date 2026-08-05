@@ -14,3 +14,6 @@ dist-ssr
 画像/
 android/.idea/
 .verify-shots/
+
+# 素材の元データ（デザインの書き出し）。ストア用は appstore-6.5 / appstore-6.9 に生成する
+/*.png
