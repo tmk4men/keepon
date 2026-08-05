@@ -39,9 +39,9 @@
   "copy": {
     "subtitle": "止まっても戻れるボディメイク",
     "promotionalText": "続かないのは、意志が弱いからじゃない。止まったあとに戻れる仕組みがなかっただけ。1分でも「継続成功」にする筋トレアプリ。",
-    "keywords": "筋トレ,習慣化,continuity,ダイエット,宅トレ,運動記録,三日坊主,復帰,トレーニング,自重",
+    "keywords": "筋トレ,習慣化,ダイエット,宅トレ,自重,運動記録,継続,三日坊主,腹筋,スクワット,ストレッチ,運動不足,ジム不要",
     "whatsNew": "初回リリースです。",
     "reviewNotes": "This app is fully paid with a 7-day free trial.\n\nIn-app purchases:\n- app.tuzukin.diet.full (Non-Consumable, JPY 500): the only paid item. Unlocks the app permanently. There is no subscription and no recurring billing.\n- app.tuzukin.diet.trial7 (Non-Consumable, Price Tier 0 / free): used only to record the start date of the 7-day free trial, per Guideline 3.1.1 (free trial for non-subscription apps). No charge is made.\n\nBefore the trial starts, the first screen states the trial duration (7 days), exactly which features stop working when it ends, and the price to continue (JPY 500, one-time). A \"Restore Purchases\" button is available on the same screen and in Settings.\n\nAll data is stored locally on the device. There is no account, no login, and no server.",
-    "description": "TODO: ストア説明文。リリース前に書く。"
+    "description": "止まっても、また戻れる。\n\n三日坊主で終わってしまうのは、意志が弱いからではありません。\n一度止まったときに、戻ってくる道が用意されていないからです。\n\nツヅキンは、完璧に続けるためのアプリではありません。\n数日サボっても、ちゃんと戻ってこられる。そのための小さな仕組みです。\n\n\nゼロを作らない\n\nその場で1分足踏みしただけでも、今日も継続成功として記録します。\nできなかった日を数えるのではなく、動けた日を数えます。\n\n\n止まったら、メニューが軽くなる\n\n2日空いたら軽めに、4日空いたら復帰モードに。今日のメニューが自動で切り替わります。\n久しぶりに開いたら、いきなりきつい種目が並んでいた。そういうことが起きません。\n\n\n連続記録ではなく、戻る力\n\n何日続いたかではなく、空白から何回戻ってこられたかを数えます。\n記録が途切れた瞬間にアプリを閉じてしまう。あれをなくすための設計です。\n\n\n今日やることに、迷わない\n\n目的、からだ、無理なくできる量、週の目標回数から、その日のメニューを自動で出します。\n2つの候補から気分で選べます。タイマーで計って、終われば自動で記録されます。\n道具のいらない、家でできる種目が中心です。\n\n\nホーム画面から、そのまま\n\nウィジェットを置いておけば、アプリを開かずに開始と完了ができます。\n\n\nこんな方へ\n\n・何度も筋トレを始めては、途中でやめてしまった\n・記録アプリを入れたが、1日抜けた時点で開かなくなった\n・忙しい日でも、ゼロにはしたくない\n・ジムに行かず、家でできる範囲から始めたい\n\n\n料金について\n\n最初の7日間は、すべての機能を無料でお試しいただけます。\nそのあとも使う場合は、買い切りでご購入いただけます。月額はありません。\n\n\n記録はすべて、お使いの端末の中に保存されます。会員登録もログインも必要ありません。\n\nこのアプリは医療や治療を目的としたものではありません。体調に不安のある方は、専門家にご相談のうえご利用ください。\n\n利用規約：${TERMS_URL}\nプライバシーポリシー：${PRIVACY_URL}"
   }
 }
