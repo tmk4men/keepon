@@ -1,5 +1,11 @@
 // アプリの状態・型・永続化（localStorage）
 
+import {
+  DEFAULT_PURCHASE,
+  normalizePurchase,
+  type PurchaseState,
+} from './entitlement'
+
 export type Goal = 'diet' | 'bulk'
 export type Gender = 'male' | 'female' | 'other'
 export type Capacity = 'low' | 'mid' | 'high'
@@ -51,10 +57,11 @@ export type AppState = {
   createdAt: string // YYYY-MM-DD
   timer: RunningTimer | null
   notify: NotifySettings
+  purchase: PurchaseState // 体験期間と購入状態
 }
 
 const STORAGE_KEY = 'keepon.state.v1'
-export const STATE_VERSION = 4
+export const STATE_VERSION = 5
 
 // ---- 日付ユーティリティ（端末ローカル日付ベース） ----
 
@@ -158,6 +165,7 @@ export function loadState(): AppState {
           createdAt: parsed.createdAt ?? todayStr(),
           timer: parsed.timer ?? null,
           notify: normalizeNotify(parsed.notify),
+          purchase: normalizePurchase(parsed.purchase),
         }
       }
     }
@@ -171,6 +179,7 @@ export function loadState(): AppState {
     createdAt: todayStr(),
     timer: null,
     notify: { ...DEFAULT_NOTIFY },
+    purchase: { ...DEFAULT_PURCHASE },
   }
 }
 
@@ -222,9 +231,27 @@ function isValidProfile(p: unknown): p is Profile {
   )
 }
 
-// 現在の状態を、バックアップ用のJSON文字列にする
+// 現在の状態を、バックアップ用のJSON文字列にする。
+// 購入・体験の状態はストア側が正なので、バックアップには含めない。
 export function exportState(): string {
-  return JSON.stringify(loadState(), null, 2)
+  const { purchase: _purchase, ...rest } = loadState()
+  return JSON.stringify(rest, null, 2)
+}
+
+// バックアップを JSON ファイルとしてダウンロードさせる
+export function downloadBackup(): boolean {
+  try {
+    const blob = new Blob([exportState()], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tsuzukin-backup-${todayStr()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    return true
+  } catch {
+    return false
+  }
 }
 
 // バックアップJSONを解釈して状態にする（保存はしない）。
@@ -247,6 +274,8 @@ export function parseBackup(json: string): AppState | null {
     createdAt: typeof p.createdAt === 'string' ? p.createdAt : todayStr(),
     timer: null,
     notify: normalizeNotify(p.notify),
+    // バックアップからは体験・購入を持ち込ませない（今の端末の状態を使う）
+    purchase: normalizePurchase(loadState().purchase),
   }
 }
 

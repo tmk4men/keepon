@@ -40,7 +40,13 @@ public class KeeponWidgetProvider extends AppWidgetProvider {
         if (title == null || title.isEmpty()) title = "アプリを開いて今日のメニューを表示";
         views.setTextViewText(R.id.widget_menu, title);
 
-        if (state.fullDone) {
+        if (state.isLocked()) {
+            // 体験切れ：操作させず、アプリを開かせるだけ
+            views.setViewVisibility(R.id.widget_status_done, View.GONE);
+            views.setViewVisibility(R.id.widget_chrono, View.GONE);
+            views.setViewVisibility(R.id.widget_btn_start, View.GONE);
+            views.setViewVisibility(R.id.widget_btn_stop, View.GONE);
+        } else if (state.fullDone) {
             // 達成済み：完了表示のみ
             views.setViewVisibility(R.id.widget_status_done, View.VISIBLE);
             views.setViewVisibility(R.id.widget_chrono, View.GONE);

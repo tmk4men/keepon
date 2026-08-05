@@ -29,6 +29,9 @@ public class WidgetState {
     public boolean fullDone;
     public boolean timerRunning;
     public long timerStartedAt;
+    public boolean locked;       // 体験切れ。ウィジェットからの操作を止める
+    /** この日まで使える YYYY-MM-DD。空なら期限なし（購入済み）。 */
+    public String accessUntil;
 
     public WidgetState() {
         this.date = null;
@@ -36,6 +39,18 @@ public class WidgetState {
         this.fullDone = false;
         this.timerRunning = false;
         this.timerStartedAt = 0L;
+        this.locked = false;
+        this.accessUntil = "";
+    }
+
+    /**
+     * 実際に操作させてよいか。locked そのものではなく期限も見る。
+     * アプリを開かないまま体験が切れた場合も、ここで止まる。
+     */
+    public boolean isLocked() {
+        if (locked) return true;
+        if (accessUntil == null || accessUntil.isEmpty()) return false;
+        return todayStr().compareTo(accessUntil) > 0;
     }
 
     public static SharedPreferences prefs(Context ctx) {
@@ -53,6 +68,8 @@ public class WidgetState {
             s.fullDone = json.optBoolean("fullDone", false);
             s.timerRunning = json.optBoolean("timerRunning", false);
             s.timerStartedAt = json.optLong("timerStartedAt", 0L);
+            s.locked = json.optBoolean("locked", false);
+            s.accessUntil = json.isNull("accessUntil") ? "" : json.optString("accessUntil", "");
         } catch (JSONException ignored) {
         }
 
@@ -79,6 +96,8 @@ public class WidgetState {
             json.put("fullDone", s.fullDone);
             json.put("timerRunning", s.timerRunning);
             json.put("timerStartedAt", s.timerStartedAt);
+            json.put("locked", s.locked);
+            json.put("accessUntil", s.accessUntil == null ? "" : s.accessUntil);
             prefs(ctx).edit().putString(KEY_STATE, json.toString()).apply();
         } catch (JSONException ignored) {
         }

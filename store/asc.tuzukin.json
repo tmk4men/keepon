@@ -1,0 +1,46 @@
+{
+  "_comment": "App Store Connect 投入用。appstore-connect スキルの asc-setup に渡す。秘密情報は入れない。",
+  "_howto": "1) ASCでアプリレコードを作る 2) asc apps で appId を確認して下に入れる 3) asc-setup store/asc.tuzukin.json（ドライラン）4) 内容を目で見てから --yes",
+
+  "appId": "TODO_asc_apps_で確認",
+  "locale": "ja",
+  "territory": "JPN",
+  "category": "HEALTH_AND_FITNESS",
+  "copyright": "2026 TomokiKariya",
+  "urls": {
+    "baseUrl": "TODO_プライバシーポリシーを置くURL",
+    "_contactEmail": "公開リポジトリなのでここには書かない。流すときに実際のアドレスを入れる",
+    "contactEmail": "TODO_問い合わせ用アドレス"
+  },
+
+  "_iaps": "trial7 は価格ティア0。ガイドライン3.1.1が求める『無料体験の開始記録』用で、課金は発生しない。",
+  "iaps": [
+    {
+      "productId": "app.tuzukin.diet.trial7",
+      "type": "NON_CONSUMABLE",
+      "referenceName": "7日間トライアル",
+      "name": "7日間トライアル",
+      "description": "7日間、すべての機能を無料でお試しいただけます。料金はかかりません。",
+      "priceYen": 0
+    },
+    {
+      "productId": "app.tuzukin.diet.full",
+      "type": "NON_CONSUMABLE",
+      "referenceName": "フルアクセス（買い切り）",
+      "name": "ツヅキン フルアクセス",
+      "description": "追加の料金なしで、すべての機能をずっとご利用いただけます。月額はありません。",
+      "priceYen": 500
+    }
+  ],
+
+  "subscriptions": [],
+
+  "copy": {
+    "subtitle": "止まっても戻れるボディメイク",
+    "promotionalText": "続かないのは、意志が弱いからじゃない。止まったあとに戻れる仕組みがなかっただけ。1分でも「継続成功」にする筋トレアプリ。",
+    "keywords": "筋トレ,習慣化,continuity,ダイエット,宅トレ,運動記録,三日坊主,復帰,トレーニング,自重",
+    "whatsNew": "初回リリースです。",
+    "reviewNotes": "This app is fully paid with a 7-day free trial.\n\nIn-app purchases:\n- app.tuzukin.diet.full (Non-Consumable, JPY 500): the only paid item. Unlocks the app permanently. There is no subscription and no recurring billing.\n- app.tuzukin.diet.trial7 (Non-Consumable, Price Tier 0 / free): used only to record the start date of the 7-day free trial, per Guideline 3.1.1 (free trial for non-subscription apps). No charge is made.\n\nBefore the trial starts, the first screen states the trial duration (7 days), exactly which features stop working when it ends, and the price to continue (JPY 500, one-time). A \"Restore Purchases\" button is available on the same screen and in Settings.\n\nAll data is stored locally on the device. There is no account, no login, and no server.",
+    "description": "TODO: ストア説明文。リリース前に書く。"
+  }
+}

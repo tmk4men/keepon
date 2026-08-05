@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
+  downloadBackup,
   loadState,
   markDone,
   saveState,
@@ -27,13 +28,47 @@ import {
   showNotification,
 } from './notify'
 import { buildDailyPlan, computeMetrics } from './logic'
-import { pullPendingRecords, syncWidgetState } from './widgetBridge'
+import {
+  pullPendingRecords,
+  readWidgetState,
+  syncWidgetState,
+} from './widgetBridge'
+import Paywall from './components/Paywall'
+import {
+  accessOn,
+  accessUntil,
+  FULL_PRICE_FALLBACK,
+  mergeStoreState,
+  PRODUCT_FULL,
+  PRODUCT_TRIAL,
+  touchSeenDate,
+  trialLabel,
+} from './entitlement'
+import {
+  buy,
+  hasStore,
+  loadProducts,
+  onPurchasesUpdated,
+  ownedProducts,
+  restorePurchases,
+  trialNeedsStore,
+} from './purchase'
 
 export default function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [tab, setTab] = useState<TabKey>('today')
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [today, setToday] = useState<string>(() => todayStr())
+  // ウィジェットからの取り込みが済むまで、ウィジェットへの書き戻しを保留する
+  const [widgetSynced, setWidgetSynced] = useState(false)
+  const [storeBusy, setStoreBusy] = useState(false)
+  const [storeMsg, setStoreMsg] = useState<string | null>(null)
+  const [fullPrice, setFullPrice] = useState(FULL_PRICE_FALLBACK)
+  // ストアから価格を取れたか。取れないまま体験を始めさせない（規約 3.1.1 の価格明示）
+  const [priceKnown, setPriceKnown] = useState(!hasStore())
+  const [storeSync, setStoreSync] = useState<(() => void) | null>(null)
+
+  const access = accessOn(state.purchase, today)
 
   // 真夜中を跨いだら today を更新する（アプリ起動時／日付変更時／可視化復帰時）
   useEffect(() => {
@@ -57,36 +92,120 @@ export default function App() {
     saveState(state)
   }, [state])
 
-  // 起動時：ウィジェットで「完了」されてたまっている記録を取り込む
+  // 日付が進んだことを覚えておく（端末の日付を戻して体験を延ばすのを防ぐ）
   useEffect(() => {
-    if (!isNative()) return
-    pullPendingRecords().then((pending) => {
-      if (pending.length === 0) return
-      setState((s) => {
-        let nextRecords = s.records
-        for (const p of pending) {
-          nextRecords = markDone(nextRecords, p.date, p.kind, p.menuTitle, p.minutes)
-        }
-        return { ...s, records: nextRecords }
-      })
+    setState((s) => {
+      const next = touchSeenDate(s.purchase, today)
+      return next === s.purchase ? s : { ...s, purchase: next }
     })
+  }, [today])
+
+  // ウィジェットの状態をアプリに取り込む。
+  // ・「完了」でたまった記録を反映する
+  // ・ウィジェットで開始されたタイマーを引き継ぐ（引き継がないとアプリ起動で消える）
+  // 起動時だけでなく復帰時にも見る（バックグラウンドのままウィジェットを押されるため）
+  useEffect(() => {
+    if (!isNative()) {
+      setWidgetSynced(true)
+      return
+    }
+    const drain = async () => {
+      const pending = await pullPendingRecords()
+      if (pending.length > 0) {
+        setState((s) => {
+          let nextRecords = s.records
+          for (const p of pending) {
+            nextRecords = markDone(nextRecords, p.date, p.kind, p.menuTitle, p.minutes)
+          }
+          return { ...s, records: nextRecords }
+        })
+      }
+      const w = await readWidgetState()
+      if (w && w.timerRunning && w.timerStartedAt > 0 && w.date === todayStr()) {
+        setState((s) =>
+          s.timer
+            ? s
+            : {
+                ...s,
+                timer: {
+                  kind: 'full',
+                  menuTitle: w.todayMenu ?? '今日のメニュー',
+                  startedAt: w.timerStartedAt,
+                },
+              },
+        )
+      }
+    }
+    // 取り込みが終わるまでウィジェットへの書き戻しを止める（先に上書きしないため）
+    drain().finally(() => setWidgetSynced(true))
+    const onVis = () => {
+      if (document.visibilityState === 'visible') drain()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
   }, [])
 
   // 状態が変わるたびにウィジェットへ反映
   useEffect(() => {
     if (!state.profile) return
     if (!isNative()) return
+    if (!widgetSynced) return
     const plan = buildDailyPlan(state, today)
     const todayRec = state.records.find((r) => r.date === today)
     const fullDone = todayRec?.full === true
+    const locked = access.kind === 'locked'
     syncWidgetState({
       date: today,
-      todayMenu: plan.menuOptions[0]?.title ?? null,
+      // 体験切れのときはウィジェットからも運動を始められないようにする
+      todayMenu: locked
+        ? 'アプリを開いて、続きの手続きをしてください'
+        : (plan.menuOptions[0]?.title ?? null),
       fullDone,
-      timerRunning: !!state.timer,
+      timerRunning: !locked && !!state.timer,
       timerStartedAt: state.timer?.startedAt ?? 0,
+      locked,
+      // 購入済みなら期限なし。体験中は最終日を渡して、アプリを開かないまま
+      // 期限を過ぎたときもウィジェット側で止められるようにする。
+      accessUntil:
+        access.kind === 'purchased' ? '' : accessUntil(state.purchase, today),
     })
-  }, [state, today])
+  }, [state, today, widgetSynced, access.kind])
+
+  // ストアの状態をアプリに合わせる。価格の表示と、購入済みかどうかの照合。
+  // 復帰時と、アプリの外で購入が確定したときにも見る
+  // （承認待ちが通った・別端末で買った・返金された、に追いつくため）
+  useEffect(() => {
+    if (!hasStore()) return
+    let alive = true
+    const sync = async () => {
+      const { ok, products } = await loadProducts()
+      if (alive) {
+        const full = products.find((p) => p.id === PRODUCT_FULL)
+        if (full?.price) setFullPrice(full.price)
+        setPriceKnown(ok && !!full?.price)
+      }
+      const owned = await ownedProducts()
+      if (!alive) return
+      setState((s) => ({ ...s, purchase: mergeStoreState(s.purchase, owned) }))
+    }
+    sync()
+    setStoreSync(() => sync)
+
+    const onVis = () => {
+      if (document.visibilityState === 'visible') sync()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    let removeListener: (() => void) | null = null
+    onPurchasesUpdated(() => sync()).then((remove) => {
+      if (alive) removeListener = remove
+      else remove()
+    })
+    return () => {
+      alive = false
+      document.removeEventListener('visibilitychange', onVis)
+      removeListener?.()
+    }
+  }, [])
 
   useEffect(() => {
     const lock = tab === 'today' || tab === 'records'
@@ -140,6 +259,69 @@ export default function App() {
     }
   }, [state.notify.enabled, state.notify.time, state.records, today])
 
+  const beginTrialLocally = () =>
+    setState((s) => ({
+      ...s,
+      purchase: {
+        ...s.purchase,
+        trialStartedAt: s.purchase.trialStartedAt ?? todayStr(),
+      },
+    }))
+
+  // 体験をはじめる。iOSだけ ¥0 の体験用商品を通す（App Store の規約 3.1.1）
+  const startTrial = async () => {
+    setStoreMsg(null)
+    if (!trialNeedsStore()) {
+      beginTrialLocally()
+      return
+    }
+    setStoreBusy(true)
+    const res = await buy(PRODUCT_TRIAL)
+    setStoreBusy(false)
+    if (res === 'purchased') {
+      beginTrialLocally()
+      return
+    }
+    if (res === 'cancelled') return
+    setStoreMsg(
+      '体験を始められませんでした。通信を確かめて、もう一度お試しください。',
+    )
+  }
+
+  const buyFull = async () => {
+    setStoreMsg(null)
+    setStoreBusy(true)
+    const res = await buy(PRODUCT_FULL)
+    setStoreBusy(false)
+    if (res === 'purchased') {
+      setState((s) => ({ ...s, purchase: { ...s.purchase, purchased: true } }))
+      return
+    }
+    if (res === 'cancelled') return
+    if (res === 'pending') {
+      setStoreMsg('購入の承認待ちです。完了すると自動で使えるようになります。')
+      return
+    }
+    setStoreMsg('購入できませんでした。通信を確かめて、もう一度お試しください。')
+  }
+
+  const restore = async () => {
+    setStoreMsg(null)
+    setStoreBusy(true)
+    const owned = await restorePurchases()
+    setStoreBusy(false)
+    if (!owned.ok) {
+      setStoreMsg('ストアに接続できませんでした。通信を確かめてください。')
+      return
+    }
+    setState((s) => ({ ...s, purchase: mergeStoreState(s.purchase, owned) }))
+    setStoreMsg(
+      owned.items.some((o) => o.id === PRODUCT_FULL)
+        ? '購入を復元しました。'
+        : 'この Apple ID / Google アカウントでの購入は見つかりませんでした。',
+    )
+  }
+
   if (!state.profile) {
     return (
       <Onboarding
@@ -150,6 +332,27 @@ export default function App() {
             createdAt: todayStr(),
           }))
         }
+      />
+    )
+  }
+
+  // 体験前・体験切れは、ここから先に進ませない
+  if (access.kind === 'locked') {
+    return (
+      <Paywall
+        mode={access.reason === 'not-started' ? 'start' : 'expired'}
+        price={fullPrice}
+        busy={storeBusy}
+        message={storeMsg}
+        canBuy={hasStore()}
+        priceKnown={priceKnown}
+        onRetryStore={() => storeSync?.()}
+        onStartTrial={startTrial}
+        onBuy={buyFull}
+        onRestore={restore}
+        onExport={() => {
+          if (!downloadBackup()) setStoreMsg('書き出しに失敗しました。')
+        }}
       />
     )
   }
@@ -202,6 +405,17 @@ export default function App() {
         </button>
       </header>
 
+      {access.kind === 'trial' && (
+        <div className="trial-bar">
+          <span>{trialLabel(access.daysLeft)}</span>
+          {hasStore() && (
+            <button onClick={buyFull} disabled={storeBusy}>
+              {fullPrice}でずっと使う
+            </button>
+          )}
+        </div>
+      )}
+
       {tab === 'today' && (
         <Home state={state} today={today} onStart={startTimer} />
       )}
@@ -221,6 +435,12 @@ export default function App() {
         <Settings
           profile={state.profile}
           notify={state.notify}
+          access={access}
+          price={fullPrice}
+          storeBusy={storeBusy}
+          canBuy={hasStore()}
+          onBuy={buyFull}
+          onRestore={restore}
           onSave={(profile) => setState((s) => ({ ...s, profile }))}
           onNotifyChange={(notify) => setState((s) => ({ ...s, notify }))}
           onReplaceState={(next) => setState(next)}

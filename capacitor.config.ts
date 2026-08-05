@@ -7,6 +7,11 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
   },
+  ios: {
+    // 起動直後の白フラッシュを防ぐ（アプリ本体の --bg と同じ）
+    backgroundColor: '#f4f1ea',
+    contentInset: 'never',
+  },
 }
 
 export default config

@@ -16,6 +16,11 @@ public class WidgetActionReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent == null || intent.getAction() == null) return;
         WidgetState state = WidgetState.read(context);
+        if (state.isLocked()) {
+            // 体験切れ。ウィジェットからは記録させない
+            KeeponWidgetProvider.updateAll(context);
+            return;
+        }
 
         switch (intent.getAction()) {
             case ACTION_START: {

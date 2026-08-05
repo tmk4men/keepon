@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "sync:ios": "cap sync ios && node tools/fix-spm-paths.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",
     "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
+    "@capacitor/ios": "^8.5.0",
     "@capacitor/local-notifications": "^8.1.0",
     "@capacitor/preferences": "^8.0.1",
     "react": "^18.3.1",

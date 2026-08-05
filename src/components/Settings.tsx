@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react'
 import {
-  exportState,
+  downloadBackup,
   parseBackup,
-  todayStr,
   type AppState,
   type Capacity,
   type Gender,
@@ -19,6 +18,7 @@ import {
   showNotification,
 } from '../notify'
 import { IconClose } from './icons'
+import { trialLabel, type Access } from '../entitlement'
 
 const GOALS: { key: Goal; label: string; sub: string }[] = [
   { key: 'diet', label: 'ダイエット', sub: '体を軽く・引き締める' },
@@ -42,6 +42,12 @@ const FREQ = [2, 3, 4, 5]
 export default function Settings({
   profile,
   notify,
+  access,
+  price,
+  storeBusy,
+  canBuy,
+  onBuy,
+  onRestore,
   onSave,
   onNotifyChange,
   onReplaceState,
@@ -49,6 +55,12 @@ export default function Settings({
 }: {
   profile: Profile
   notify: NotifySettings
+  access: Access
+  price: string
+  storeBusy: boolean
+  canBuy: boolean
+  onBuy: () => void
+  onRestore: () => void
   onSave: (p: Profile) => void
   onNotifyChange: (n: NotifySettings) => void
   onReplaceState: (s: AppState) => void
@@ -75,18 +87,11 @@ export default function Settings({
   const bmi = bmiInfo(Number(height), Number(weight))
 
   const handleExport = () => {
-    try {
-      const blob = new Blob([exportState()], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `tsuzukin-backup-${todayStr()}.json`
-      a.click()
-      URL.revokeObjectURL(url)
-      setDataMsg({ ok: true, text: 'バックアップを書き出しました。' })
-    } catch {
-      setDataMsg({ ok: false, text: '書き出しに失敗しました。' })
-    }
+    setDataMsg(
+      downloadBackup()
+        ? { ok: true, text: 'バックアップを書き出しました。' }
+        : { ok: false, text: '書き出しに失敗しました。' },
+    )
   }
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -342,6 +347,40 @@ export default function Settings({
           <p className="settings-note">
             このアプリは医療・治療を目的としたものではありません。
           </p>
+        </section>
+
+        <section className="settings-section">
+          <h3 className="settings-q">ご利用の状態</h3>
+          {access.kind === 'purchased' ? (
+            <p className="settings-note">
+              フルアクセスを購入済みです。期限はありません。
+            </p>
+          ) : (
+            <>
+              <p className="settings-note">
+                {access.kind === 'trial'
+                  ? `無料体験を利用中です（${trialLabel(access.daysLeft)}）。体験が終わると、記録もメニューも使えなくなります。`
+                  : '無料体験は終了しています。'}
+                {canBuy
+                  ? `そのまま使い続けるには ${price}（買い切り）です。月額はありません。`
+                  : 'アプリ版でご購入いただけます。'}
+              </p>
+              {canBuy && (
+                <div className="data-actions">
+                  <button className="data-btn" onClick={onBuy} disabled={storeBusy}>
+                    {price}でずっと使う
+                  </button>
+                  <button
+                    className="data-btn"
+                    onClick={onRestore}
+                    disabled={storeBusy}
+                  >
+                    購入を復元する
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </section>
 
         <section className="settings-section">
