@@ -2,18 +2,15 @@
   "_comment": "App Store Connect 投入用。appstore-connect スキルの asc-setup に渡す。秘密情報は入れない。",
   "_howto": "1) ASCでアプリレコードを作る 2) ./store/push-to-asc.sh（下見）3) 内容を目で見てから ./store/push-to-asc.sh --yes",
   "_appId": "push-to-asc.sh が bundleId から自動で引くので、ここは空のままでよい",
-
   "appId": "",
   "locale": "ja",
   "territory": "JPN",
   "category": "HEALTH_AND_FITNESS",
   "copyright": "2026 TomokiKariya",
   "urls": {
-    "baseUrl": "TODO_プライバシーポリシーを置くURL",
-    "_contactEmail": "公開リポジトリなのでここには書かない。流すときに実際のアドレスを入れる",
-    "contactEmail": "TODO_問い合わせ用アドレス"
+    "baseUrl": "https://tmk4men.github.io/keepon",
+    "contactEmail": "tomokiskriiiabc@gmail.com"
   },
-
   "_iaps": "trial7 は価格ティア0。ガイドライン3.1.1が求める『無料体験の開始記録』用で、課金は発生しない。",
   "iaps": [
     {
@@ -33,9 +30,7 @@
       "priceYen": 500
     }
   ],
-
   "subscriptions": [],
-
   "copy": {
     "subtitle": "止まっても戻れるボディメイク",
     "promotionalText": "続かないのは、意志が弱いからじゃない。止まったあとに戻れる仕組みがなかっただけ。1分でも「継続成功」にする筋トレアプリ。",

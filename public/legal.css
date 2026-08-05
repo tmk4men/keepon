@@ -1,0 +1,97 @@
+/* プライバシーポリシー・利用規約・サポートの共通スタイル。アプリ本体と同じ配色。 */
+:root {
+  --bg: #f4f1ea;
+  --card: #ffffff;
+  --ink: #2c2a26;
+  --sub: #8a8377;
+  --line: #e7e2d6;
+  --accent: #3f7d6e;
+  --accent-deep: #2f5d52;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP',
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 28px 20px 64px;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+  text-decoration: none;
+  color: inherit;
+}
+.brand img {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+}
+.brand span {
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent-deep);
+}
+h1 {
+  font-size: 23px;
+  margin: 0 0 6px;
+  color: var(--accent-deep);
+}
+.updated {
+  color: var(--sub);
+  font-size: 13px;
+  margin: 0 0 26px;
+}
+section {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 13px;
+  box-shadow: 0 1px 2px rgba(44, 42, 38, 0.04), 0 3px 9px rgba(44, 42, 38, 0.035);
+}
+h2 {
+  font-size: 15.5px;
+  margin: 0 0 8px;
+  color: var(--accent-deep);
+}
+p {
+  margin: 0 0 10px;
+  font-size: 14.5px;
+}
+p:last-child,
+ul:last-child {
+  margin-bottom: 0;
+}
+ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  font-size: 14.5px;
+}
+li {
+  margin-bottom: 5px;
+}
+a {
+  color: var(--accent);
+}
+footer {
+  margin-top: 26px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--sub);
+}
+footer a {
+  margin: 0 8px;
+  white-space: nowrap;
+}
